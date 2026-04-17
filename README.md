@@ -2,6 +2,7 @@
 
 > ![Microsoft logo](https://i.imgur.com/Wbos3r0.png) [Fluent Icons](https://github.com/microsoft/fluentui-system-icons) used in this project are licensed under the [![License: MIT License](https://img.shields.io/badge/MIT-License-006aff)](https://mit-license.org/) (MIT license @ https://mit-license.org).
 
+> ![image](https://i.imgur.com/rJ9l299.png) To-do: https://github.com/owtysm2/CuoreUI/discussions/6
 ---
 
 # ![cui-32x](https://i.imgur.com/PHRIIbS.png) CuoreUI.Winforms
