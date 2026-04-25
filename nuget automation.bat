@@ -49,6 +49,5 @@ set /a lineNum=0
 )
 
 move tempfile.txt CuoreUI.Winforms.nuspec
-del tempfile.txt
 
 start "Title" nuget.exe pack
