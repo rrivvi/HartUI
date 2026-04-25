@@ -18,10 +18,7 @@ namespace CuoreUI.Controls
         private bool privateShowPlus = true;
         public bool ShowPlus
         {
-            get
-            {
-                return privateShowPlus;
-            }
+            get { return privateShowPlus; }
             set
             {
                 privateShowPlus = value;
@@ -32,10 +29,7 @@ namespace CuoreUI.Controls
         private bool privateShowDelete = true;
         public bool ShowDelete
         {
-            get
-            {
-                return privateShowDelete;
-            }
+            get { return privateShowDelete; }
             set
             {
                 privateShowDelete = value;
@@ -46,10 +40,7 @@ namespace CuoreUI.Controls
         private int privateRounding = 8;
         public int Rounding
         {
-            get
-            {
-                return privateRounding;
-            }
+            get { return privateRounding; }
             set
             {
                 privateRounding = value;
@@ -74,21 +65,15 @@ namespace CuoreUI.Controls
 
         public int SelectedIndex
         {
-            get
-            {
-                return _selectedIndex;
-            }
-            set
-            {
-                SelectTab(value);
-            }
+            get { return _selectedIndex; }
+            set { SelectTab(value); }
         }
 
         public TabPage SelectedTab
         {
             get
             {
-                if (_selectedIndex < 0 || _selectedIndex + 1 < Pages.Count)
+                if (_selectedIndex < 0 || _selectedIndex >= Pages.Count)
                 {
                     return null;
                 }
@@ -109,10 +94,10 @@ namespace CuoreUI.Controls
         [Description("Height of the tab headers.")]
         public int TabHeight
         {
-            get => tabHeight;
+            get { return tabHeight; }
             set
             {
-                tabHeight = Math.Max(16, value); // sane lower bound
+                tabHeight = Math.Max(16, value);
                 Invalidate();
             }
         }
@@ -121,13 +106,13 @@ namespace CuoreUI.Controls
 
         [Browsable(true)]
         [Category("CuoreUI")]
-        [Description("Height of the tab headers.")]
+        [Description("Minimum width of the tab headers.")]
         public int TabWidth
         {
-            get => tabWidth;
+            get { return tabWidth; }
             set
             {
-                tabWidth = Math.Max(16, value); // sane lower bound
+                tabWidth = Math.Max(16, value);
                 Invalidate();
             }
         }
@@ -146,7 +131,7 @@ namespace CuoreUI.Controls
         [Category("CuoreUI")]
         public int ScrollOffset
         {
-            get => scrollOffset;
+            get { return scrollOffset; }
             set
             {
                 scrollOffset = Math.Max(0, value);
@@ -157,8 +142,8 @@ namespace CuoreUI.Controls
         [Category("CuoreUI")]
         public string NamingConvention
         {
-            get => namingConvention;
-            set => namingConvention = value ?? "TabPage";
+            get { return namingConvention; }
+            set { namingConvention = value ?? "TabPage"; }
         }
 
         public string GetUniqueTabName()
@@ -194,9 +179,6 @@ namespace CuoreUI.Controls
             Pages.Add(page);
             TabAdded?.Invoke(this, new TabAddedEventArgs(page));
 
-            int totalWidth = Pages.Count * (TabWidth + TabPadding) + TabHeight;
-            scrollOffset = Math.Max(0, totalWidth - Width);
-
             if (_selectedIndex == -1)
             {
                 SelectTab(0);
@@ -219,11 +201,23 @@ namespace CuoreUI.Controls
                 return;
             }
 
+            bool removedSelected = index == _selectedIndex;
+
             Pages.RemoveAt(index);
             TabRemoved?.Invoke(this, index);
-            if (_selectedIndex >= Pages.Count)
+
+            if (Pages.Count == 0)
             {
-                _selectedIndex = Pages.Count - 1;
+                Controls.Clear();
+                _selectedIndex = -1;
+            }
+            else if (removedSelected)
+            {
+                SelectTab(Math.Min(index, Pages.Count - 1));
+            }
+            else if (index < _selectedIndex)
+            {
+                _selectedIndex--;
             }
 
             Invalidate();
@@ -286,6 +280,64 @@ namespace CuoreUI.Controls
                 cachedTextSize = g.MeasureString("A", Font);
         }
 
+        private int GetImageDrawSize()
+        {
+            int size = Math.Max(16, Math.Min(24, TabHeight - 10));
+            Rectangle r = new Rectangle(0, 0, size, size);
+            r.Inflate(ImageExpand.Width, ImageExpand.Height);
+
+            if (r.Width < 1) r.Width = 1;
+            if (r.Height < 1) r.Height = 1;
+
+            return r.Width;
+        }
+
+        private int GetTabWidth(TabPage page)
+        {
+            int width = TabPadding * 2;
+
+            if (page != null && page.Image != null)
+            {
+                width += GetImageDrawSize() + 4;
+            }
+
+            string text = page == null ? string.Empty : (page.Title ?? string.Empty);
+            width += TextRenderer.MeasureText(
+                text,
+                Font,
+                Size.Empty,
+                TextFormatFlags.SingleLine | TextFormatFlags.NoPadding
+            ).Width;
+
+            if (ShowDelete)
+            {
+                width += CloseBoxSize + 14;
+            }
+
+            return Math.Max(TabWidth, width);
+        }
+
+        private int GetTabsTotalWidth()
+        {
+            int width = 0;
+            for (int i = 0; i < Pages.Count; i++)
+            {
+                width += GetTabWidth(Pages[i]);
+                width += TabPadding;
+            }
+            return width;
+        }
+
+        private Rectangle GetCloseRect(Rectangle tabRect)
+        {
+            return new Rectangle(
+                tabRect.Right - CloseBoxSize - 10,
+                tabRect.Top + (TabHeight - CloseBoxSize) / 2 + 1,
+                CloseBoxSize - 4,
+                CloseBoxSize - 4
+            );
+        }
+
         protected override void OnPaint(PaintEventArgs e)
         {
             var g = e.Graphics;
@@ -294,8 +346,18 @@ namespace CuoreUI.Controls
             g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
             e.Graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
 
-            int totalWidth = (Pages.Count) * (TabWidth + TabPadding) + TabHeight;
-            scrollOffset = Math.Max(0, Math.Min(scrollOffset, totalWidth - Width));
+            int tabsTotalWidth = GetTabsTotalWidth();
+            int totalWidth = tabsTotalWidth + (ShowPlus ? TabHeight : 0);
+
+            if (totalWidth < Width)
+            {
+                scrollOffset = 0;
+            }
+            else
+            {
+                scrollOffset = Math.Max(0, Math.Min(scrollOffset, totalWidth - Width));
+            }
+
             MeasureTextSize(g);
 
             using (var unselectedBackgroundBrush = new SolidBrush(UnselectedBackgroundColor))
@@ -305,16 +367,21 @@ namespace CuoreUI.Controls
             using (var unselectedTextBrush = new SolidBrush(UnselectedTextColor))
             using (var hoverTextBrush = new SolidBrush(HoverTextColor))
             {
+                int x = 0;
+
                 for (int i = 0; i < Pages.Count; i++)
                 {
-                    int x = i * (TabWidth + TabPadding) - scrollOffset;
-                    if (x + TabWidth < 0 || x > Width)
+                    var currentPage = Pages[i];
+                    int currentTabWidth = GetTabWidth(currentPage);
+                    int drawX = x - scrollOffset;
+
+                    if (drawX + currentTabWidth < 0 || drawX > Width)
                     {
+                        x += currentTabWidth + TabPadding;
                         continue;
                     }
 
-                    var currentPage = Pages[i];
-                    var tabRect = new Rectangle(x, 0, TabWidth, TabHeight);
+                    var tabRect = new Rectangle(drawX, 0, currentTabWidth, TabHeight);
                     bool isSelected = i == _selectedIndex;
                     bool isHover = i == _hoverIndex && !isSelected;
 
@@ -325,44 +392,60 @@ namespace CuoreUI.Controls
                                       unselectedBackgroundBrush, path);
                     }
 
-                    int textHorizontalOffset = 0;
+                    int contentLeft = tabRect.Left + TabPadding;
+                    int contentRight = tabRect.Right - TabPadding;
+
+                    if (ShowDelete)
+                    {
+                        contentRight -= CloseBoxSize + 10;
+                    }
 
                     if (currentPage.Image != null)
                     {
-                        using (Bitmap currentImage = DrawingHelper.Imaging.TintBitmap(currentPage.Image, isSelected ? SelectedImageTint :
-                                      isHover ? HoverImageTint :
-                                      UnselectedImageTint))
+                        using (Bitmap currentImage = DrawingHelper.Imaging.TintBitmap(
+                            currentPage.Image,
+                            isSelected ? SelectedImageTint :
+                            isHover ? HoverImageTint :
+                            UnselectedImageTint))
                         {
-                            Rectangle imageRect = tabRect;
-                            imageRect.Width = imageRect.Height;
-
-                            int targetSize = 24;
-                            int dx = (imageRect.Width - targetSize) / 2;
-                            int dy = (imageRect.Height - targetSize) / 2;
-                            imageRect.Inflate(ImageExpand.Width - dx, ImageExpand.Height - dy);
-
-                            textHorizontalOffset = imageRect.Width;
+                            int imageSize = GetImageDrawSize();
+                            Rectangle imageRect = new Rectangle(
+                                contentLeft,
+                                tabRect.Top + (TabHeight - imageSize) / 2,
+                                imageSize,
+                                imageSize
+                            );
 
                             g.DrawImage(currentImage, imageRect);
+
+                            contentLeft += imageSize + 4;
                         }
                     }
 
-                    g.DrawString(
-                        currentPage.Title,
+                    string title = currentPage.Title ?? string.Empty;
+                    Rectangle textRect = new Rectangle(
+                        contentLeft + TextOffset.Width,
+                        tabRect.Top + TextOffset.Height,
+                        Math.Max(0, contentRight - contentLeft - TextOffset.Width),
+                        TabHeight
+                    );
+
+                    TextRenderer.DrawText(
+                        g,
+                        title,
                         Font,
-                        isSelected ? selectedTextBrush : isHover ? hoverTextBrush : unselectedTextBrush,
-                        tabRect.Left + tabHeight / 2 - Font.Height / 2 + textHorizontalOffset - TextOffset.Width,
-                        2 + tabRect.Top + (TabHeight - cachedTextSize.Height) / 2 - TextOffset.Height
+                        textRect,
+                        isSelected ? SelectedTextColor : isHover ? HoverTextColor : UnselectedTextColor,
+                        TextFormatFlags.SingleLine |
+                        TextFormatFlags.VerticalCenter |
+                        TextFormatFlags.Left |
+                        TextFormatFlags.EndEllipsis |
+                        TextFormatFlags.NoPadding
                     );
 
                     if (ShowDelete)
                     {
-                        var closeRect = new Rectangle(
-                            tabRect.Right - CloseBoxSize - 10,
-                            tabRect.Top + (TabHeight - CloseBoxSize) / 2 + 1,
-                            CloseBoxSize - 4,
-                            CloseBoxSize - 4
-                        );
+                        var closeRect = GetCloseRect(tabRect);
 
                         using (Pen ClosePen = new Pen(isSelected ? SelectedDeleteColor : isHover ? HoverDeleteColor : UnselectedDeleteColor) { StartCap = LineCap.Round, EndCap = LineCap.Round })
                         using (var closePath = GeneralHelper.Crossmark(closeRect))
@@ -370,6 +453,8 @@ namespace CuoreUI.Controls
                             g.DrawPath(ClosePen, closePath);
                         }
                     }
+
+                    x += currentTabWidth + TabPadding;
                 }
             }
 
@@ -377,8 +462,8 @@ namespace CuoreUI.Controls
             {
                 using (var brush = new LinearGradientBrush(
                     rect,
-                    reverse ? BackColor : Color.Transparent, // start
-                    reverse ? Color.Transparent : BackColor, // end
+                    reverse ? BackColor : Color.Transparent,
+                    reverse ? Color.Transparent : BackColor,
                     LinearGradientMode.Horizontal))
                 {
                     g.FillRectangle(brush, rect);
@@ -390,11 +475,16 @@ namespace CuoreUI.Controls
             {
                 float visibleRatio = Width / (float)totalWidth;
                 int thumbWidth = Math.Max(30, (int)(Width * visibleRatio));
-                int maxThumbPos = Width - thumbWidth;
-                int thumbX = (int)(scrollOffset / (float)(totalWidth - Width) * maxThumbPos);
+                int maxThumbPos = Math.Max(0, Width - thumbWidth);
+                int thumbX = 0;
+
+                if (totalWidth > Width && maxThumbPos > 0)
+                {
+                    thumbX = (int)(scrollOffset / (float)(totalWidth - Width) * maxThumbPos);
+                }
+
                 scrollbarThumbRect = new Rectangle(thumbX, TabHeight + ScrollbarHeight / 2 - 3, thumbWidth - 1, ScrollbarHeight);
 
-                // scroll and scroll arrows
                 using (var scrollBrush = new SolidBrush(Color.FromArgb(scrollAlpha, ScrollbarColor)))
                 using (var scrollPath = GeneralHelper.RoundRect(scrollbarThumbRect, ScrollbarHeight / 2 - 1))
                 {
@@ -429,11 +519,15 @@ namespace CuoreUI.Controls
                     }
                 }
             }
+            else
+            {
+                scrollbarThumbRect = Rectangle.Empty;
+            }
 
             if (ShowPlus)
             {
                 e.Graphics.PixelOffsetMode = PixelOffsetMode.Default;
-                int addX = Pages.Count * (TabWidth + TabPadding) - scrollOffset;
+                int addX = tabsTotalWidth - scrollOffset;
                 var addRect = new Rectangle(addX, 0, TabHeight, TabHeight);
 
                 using (Pen plusPen = new Pen(PlusColor))
@@ -448,7 +542,8 @@ namespace CuoreUI.Controls
 
         private void CustomTabControl_MouseWheel(object sender, MouseEventArgs e)
         {
-            if (Pages.Count * (TabWidth + TabPadding) - TabPadding <= Width)
+            int totalWidth = GetTabsTotalWidth() + (ShowPlus ? TabHeight : 0);
+            if (totalWidth <= Width)
             {
                 return;
             }
@@ -464,7 +559,6 @@ namespace CuoreUI.Controls
 
         protected override void OnKeyDown(KeyEventArgs e)
         {
-            // scroll with keys
             if (e.KeyCode == Keys.Left)
             {
                 scrollOffset -= ScrollSpeed;
@@ -475,34 +569,36 @@ namespace CuoreUI.Controls
                 scrollOffset += ScrollSpeed;
                 Invalidate();
             }
+
             base.OnKeyDown(e);
         }
 
         private void tb_MouseDown(object sender, MouseEventArgs e)
         {
-            int totalWidth = (Pages.Count) * (TabWidth + TabPadding) + TabHeight;
+            int x = 0;
 
-            // check if cursor over tab
             for (int i = 0; i < Pages.Count; i++)
             {
-                int x = i * (TabWidth + TabPadding) - scrollOffset;
-                var tabRect = new Rectangle(x, 0, TabWidth, TabHeight);
+                int currentTabWidth = GetTabWidth(Pages[i]);
+                var tabRect = new Rectangle(x - scrollOffset, 0, currentTabWidth, TabHeight);
 
                 if (!tabRect.Contains(e.Location))
+                {
+                    x += currentTabWidth + TabPadding;
                     continue;
+                }
 
                 if (ShowDelete)
                 {
-                    var closeRect = new Rectangle(
-                               tabRect.Right - CloseBoxSize - 10,
-                               tabRect.Top + (TabHeight - CloseBoxSize) / 2 + 1,
-                               CloseBoxSize - 4, CloseBoxSize - 4);
+                    var closeRect = GetCloseRect(tabRect);
 
                     if (closeRect.Contains(e.Location))
                     {
                         RemoveTab(i);
                         if (_selectedIndex == i)
+                        {
                             SelectTab(Math.Min(i, Pages.Count - 1));
+                        }
                         return;
                     }
                 }
@@ -513,8 +609,8 @@ namespace CuoreUI.Controls
 
             if (ShowPlus)
             {
-                int addX = Pages.Count * (TabWidth + TabPadding) - scrollOffset;
-                var addRect = new Rectangle(addX, 0, TabHeight, TabHeight);
+                int tabsTotalWidth = GetTabsTotalWidth();
+                var addRect = new Rectangle(tabsTotalWidth - scrollOffset, 0, TabHeight, TabHeight);
                 if (addRect.Contains(e.Location))
                 {
                     SelectTab(AddTab());
@@ -522,7 +618,6 @@ namespace CuoreUI.Controls
                 }
             }
 
-            // scroll start
             Rectangle expandedThumbRect = scrollbarThumbRect;
             expandedThumbRect.Inflate(2, 2);
             if (expandedThumbRect.Contains(e.Location))
@@ -552,33 +647,32 @@ namespace CuoreUI.Controls
             int newHover = -1;
             bool newHoveringInteractive = false;
 
+            int x = 0;
             for (int i = 0; i < Pages.Count; i++)
             {
-                int x = i * (TabWidth + TabPadding) - scrollOffset;
-                var tabRect = new Rectangle(x, 0, TabWidth, TabHeight);
+                int currentTabWidth = GetTabWidth(Pages[i]);
+                var tabRect = new Rectangle(x - scrollOffset, 0, currentTabWidth, TabHeight);
+
                 if (tabRect.Contains(e.Location))
                 {
                     newHover = i;
                     if (ShowDelete)
                     {
-                        // check if hovering over close box
-                        var closeRect = new Rectangle(
-                        tabRect.Right - CloseBoxSize - 10,
-                        tabRect.Top + (TabHeight - CloseBoxSize) / 2 + 1,
-                        CloseBoxSize - 4, CloseBoxSize - 4);
+                        var closeRect = GetCloseRect(tabRect);
 
                         if (closeRect.Contains(e.Location))
                             newHoveringInteractive = true;
                     }
                     break;
                 }
+
+                x += currentTabWidth + TabPadding;
             }
 
             if (ShowPlus)
             {
-                // check add tab button hover
-                int addX = Pages.Count * (TabWidth + TabPadding) - scrollOffset;
-                var addRect = new Rectangle(addX, 0, TabHeight, TabHeight);
+                int tabsTotalWidth = GetTabsTotalWidth();
+                var addRect = new Rectangle(tabsTotalWidth - scrollOffset, 0, TabHeight, TabHeight);
                 if (addRect.Contains(e.Location))
                 {
                     newHover = Pages.Count;
@@ -586,30 +680,30 @@ namespace CuoreUI.Controls
                 }
             }
 
-            // update hover index
             if (newHover != _hoverIndex)
             {
                 _hoverIndex = newHover;
                 Invalidate();
             }
 
-            // update cursor
             if (newHoveringInteractive != hoveringInteractive)
             {
                 hoveringInteractive = newHoveringInteractive;
                 Cursor = hoveringInteractive ? Cursors.Hand : Cursors.Default;
             }
 
-            // handle thumb dragging
             if (draggingThumb)
             {
-                int totalWidth = (Pages.Count) * (TabWidth + TabPadding) + TabHeight;
+                int totalWidth = GetTabsTotalWidth() + (ShowPlus ? TabHeight : 0);
                 int thumbWidth = scrollbarThumbRect.Width;
-                int maxThumbX = Width - thumbWidth;
+                int maxThumbX = Math.Max(0, Width - thumbWidth);
 
-                int newThumbX = Math.Max(0, Math.Min(e.X - dragOffsetX, maxThumbX));
-                float ratio = newThumbX / (float)maxThumbX;
-                scrollOffset = (int)((totalWidth - Width) * ratio);
+                if (maxThumbX > 0 && totalWidth > Width)
+                {
+                    int newThumbX = Math.Max(0, Math.Min(e.X - dragOffsetX, maxThumbX));
+                    float ratio = newThumbX / (float)maxThumbX;
+                    scrollOffset = (int)((totalWidth - Width) * ratio);
+                }
 
                 Invalidate();
             }
@@ -626,7 +720,6 @@ namespace CuoreUI.Controls
         bool scrollbarUntouchable = false;
         byte scrollAlpha = 0;
 
-        // 32ms delay is unnoticable imo
         private void scrollbarTimer_Tick(object sender, EventArgs e)
         {
             if (scrollAlpha == 0)

@@ -13,8 +13,6 @@ internal static class FormsRegisteredByRounder
 
     static List<RegisteredForm> registeredFormList = new List<RegisteredForm>();
 
-    public static int registeredCount => registeredFormList.Count;
-
     public static void RemoveByForm(Form formToRemove)
     {
         registeredFormList = registeredFormList.Where(f => f.targetForm != formToRemove).ToList();

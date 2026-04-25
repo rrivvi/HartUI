@@ -1,5 +1,6 @@
 ﻿using CuoreUI.Components;
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Threading.Tasks;
@@ -10,7 +11,7 @@ namespace CuoreUI.Controls.Forms.Internal
 {
     public partial class ComboBoxDropDownForm : Form
     {
-        private string[] Items = new string[] { };
+        private List<string> Items = new List<string> { };
         private Control TargetControl = null;
 
         int scrollOffset = 0;
@@ -63,7 +64,7 @@ namespace CuoreUI.Controls.Forms.Internal
         int GetContentHeight()
         {
             int buttonOffsetSize = buttonHeight + buttonPadding - 2;
-            return buttonPadding + formPadding + formPadding + Items.Length * buttonOffsetSize;
+            return buttonPadding + formPadding + formPadding + Items.Count * buttonOffsetSize;
         }
 
         int GetMaxScroll()
@@ -131,7 +132,7 @@ namespace CuoreUI.Controls.Forms.Internal
             base.OnMouseWheel(e);
         }
 
-        public bool Show(Control attachToControl, params string[] comboBoxItems)
+        public bool Show(Control attachToControl, System.Collections.Generic.List<string> comboBoxItems)
         {
             if (canShow == false)
             {
@@ -196,16 +197,16 @@ namespace CuoreUI.Controls.Forms.Internal
         void CalculateNewSize()
         {
             int buttonOffsetSize = buttonHeight + buttonPadding - 2;
-            int doubleFormPadding = formPadding + formPadding;
+            int doubleFormPadding = formPadding * 2;
 
-            int newHeight = -1 + buttonPadding;
-            foreach (var item in Items)
+            int newHeight = buttonPadding - 1;
+
+            int count = Items.Count;
+            for (int i = 0; i < count; i++)
             {
                 newHeight += buttonOffsetSize;
                 if (newHeight > MaxDropDownHeight)
-                {
                     break;
-                }
             }
 
             Size = new Size(TargetControl.Width + 1 + doubleFormPadding, newHeight + 1 + doubleFormPadding);
@@ -231,20 +232,18 @@ namespace CuoreUI.Controls.Forms.Internal
             Point clickPoint = PointToClient(Cursor.Position);
 
             if (dragging || GetScrollbarRect().Contains(clickPoint))
-            {
                 return;
-            }
 
             int buttonOffsetSize = buttonHeight + buttonPadding - 2;
             int currentItemY = buttonPadding - scrollOffset;
-            int doublePadding = buttonPadding + buttonPadding;
+            int doublePadding = buttonPadding * 2;
             bool isOverflowing = GetContentHeight() > Height;
 
-            for (int i = 0; i < Items.Length; i++)
+            int width = Width - doublePadding - 1 - (isOverflowing ? scrollbarWidth : 0);
+
+            for (int i = 0; i < Items.Count; i++)
             {
-                Rectangle itemRect = new Rectangle(
-                    buttonPadding, currentItemY, Width - doublePadding - 1 - (isOverflowing ? scrollbarWidth : 0), buttonHeight
-                );
+                Rectangle itemRect = new Rectangle(buttonPadding, currentItemY, width, buttonHeight);
 
                 if (itemRect.Contains(clickPoint))
                 {
@@ -261,59 +260,54 @@ namespace CuoreUI.Controls.Forms.Internal
         protected override void OnPaint(PaintEventArgs e)
         {
             if (TargetControl == null)
-            {
                 return;
-            }
 
-            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-            e.Graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+            var g = e.Graphics;
+
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            g.PixelOffsetMode = PixelOffsetMode.HighQuality;
 
             int currentItemY = buttonPadding - scrollOffset;
             int buttonOffsetSize = buttonHeight + buttonPadding - 2;
-            int doublePadding = buttonPadding + buttonPadding;
+            int doublePadding = buttonPadding * 2;
             bool isOverflowing = GetContentHeight() > Height;
 
-            Rectangle GetItemRect()
-            {
-                return new Rectangle(buttonPadding, currentItemY, Width - doublePadding - 1 - (isOverflowing ? scrollbarWidth : 0), buttonHeight);
-            }
+            int width = Width - doublePadding - 1 - (isOverflowing ? scrollbarWidth : 0);
 
-            e.Graphics.SetClip(ClientRectangle);
+            g.SetClip(ClientRectangle);
             Point cursorPosition = PointToClient(Cursor.Position);
-            int i = 0;
 
-            foreach (string item in Items)
+            for (int i = 0; i < Items.Count; i++)
             {
-                Rectangle itemRect = GetItemRect();
+                Rectangle itemRect = new Rectangle(buttonPadding, currentItemY, width, buttonHeight);
                 bool isSelected = SelectedIndex == i;
+                bool isHover = itemRect.Contains(cursorPosition);
 
-                // don't create path if not hovering or not selected
-                if (itemRect.Contains(cursorPosition) || isSelected)
+                if (isHover || isSelected)
                 {
                     using (SolidBrush hoverBrush = new SolidBrush(Color.FromArgb(32, 128, 128, 128)))
                     using (GraphicsPath itemPath = Helpers.GeneralHelper.RoundRect(itemRect, new Padding(8)))
                     {
-                        e.Graphics.FillPath(hoverBrush, itemPath);
+                        g.FillPath(hoverBrush, itemPath);
                     }
 
                     if (isSelected)
                     {
-                        Rectangle selectedIndicator = GetItemRect();
+                        Rectangle selectedIndicator = itemRect;
                         selectedIndicator.Inflate(0, -9);
                         selectedIndicator.Width = 3;
 
                         using (GraphicsPath selectedIndicatorPath = Helpers.GeneralHelper.RoundRect(selectedIndicator, new Padding(2)))
                         {
-                            e.Graphics.FillPath(Brushes.Gray, selectedIndicatorPath);
+                            g.FillPath(Brushes.Gray, selectedIndicatorPath);
                         }
                     }
                 }
 
                 Point textPosition = new Point(itemRect.X + 8, currentItemY + (itemRect.Height - Font.Height) / 2);
-                TextRenderer.DrawText(e.Graphics, Items[i], Font, textPosition, ForeColor);
+                TextRenderer.DrawText(g, Items[i], Font, textPosition, ForeColor);
 
                 currentItemY += buttonOffsetSize;
-                i++;
             }
 
             if (isOverflowing)
@@ -321,7 +315,7 @@ namespace CuoreUI.Controls.Forms.Internal
                 using (SolidBrush scrollbarBrush = new SolidBrush(Color.FromArgb(96, 128, 128, 128)))
                 using (GraphicsPath scrollbarRoundedPath = Helpers.GeneralHelper.RoundRect(GetScrollbarRect(), 4))
                 {
-                    e.Graphics.FillPath(scrollbarBrush, scrollbarRoundedPath);
+                    g.FillPath(scrollbarBrush, scrollbarRoundedPath);
                 }
             }
             //base.OnPaint(e);

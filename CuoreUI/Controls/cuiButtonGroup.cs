@@ -385,6 +385,20 @@ namespace CuoreUI.Controls
             }
         }
 
+        private SizeF cachedTextSize = SizeF.Empty;
+        private string lastMeasuredText = null;
+        private Font lastMeasuredFont = null;
+
+        private void UpdateTextCache(Graphics g)
+        {
+            if (privateContent != lastMeasuredText || Font != lastMeasuredFont)
+            {
+                cachedTextSize = g.MeasureString(privateContent, Font);
+                lastMeasuredText = privateContent;
+                lastMeasuredFont = Font;
+            }
+        }
+
         protected override void OnPaint(PaintEventArgs e)
         {
             e.Graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
@@ -486,8 +500,8 @@ namespace CuoreUI.Controls
             imageRectangle.Width = imageRectangle.Height;
             imageRectangle.Inflate(ImageExpand.X, ImageExpand.Y);
 
-            SizeF textSize = e.Graphics.MeasureString(privateContent, Font);
-            int textWidth = (int)Math.Ceiling(textSize.Width);
+            UpdateTextCache(e.Graphics);
+            int textWidth = (int)Math.Ceiling(cachedTextSize.Width);
 
             int imageWidth = privateImage != null ? imageRectangle.Width : 0;
             int combinedWidth = imageWidth + (privateImage != null ? textSpacing : 0) + textWidth;
@@ -554,11 +568,15 @@ namespace CuoreUI.Controls
                         });
                     }
 
-                    if (imageAttributes == null)
+                    if (renderedTint != lastImageTint)
                     {
-                        imageAttributes = new ImageAttributes();
+                        if (imageAttributes == null)
+                        {
+                            imageAttributes = new ImageAttributes();
+                        }
+
+                        imageAttributes.SetColorMatrix(colorMatrix);
                     }
-                    imageAttributes.SetColorMatrix(colorMatrix);
 
                     // Draw the image with the tint
                     e.Graphics.DrawImage(

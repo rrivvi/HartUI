@@ -24,7 +24,6 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
             this.Name = "cuiSwitch";
             this.Size = new System.Drawing.Size(48, 26);
-            this.Load += new System.EventHandler(this.cuiSwitch_Load);
             this.ResumeLayout(false);
 
         }

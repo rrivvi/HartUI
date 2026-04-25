@@ -21,7 +21,7 @@ public static class HandCursorFix
                 Cursor SystemHandCursor = new Cursor(LoadCursor(IntPtr.Zero, 32649 /*IDC_HAND*/));
                 FieldInfo handFieldInfo = typeof(Cursors).GetField("hand", BindingFlags.Static | BindingFlags.NonPublic);
                 if (handFieldInfo != null)
-                { 
+                {
                     handFieldInfo.SetValue(null, SystemHandCursor);
                 }
             }

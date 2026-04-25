@@ -13,8 +13,9 @@ namespace CuoreUI.Controls
     public partial class cuiResizeGrip : UserControl
     {
         Point lastMousePoint = new Point(-1, -1);
-
         Form privateTargetForm;
+        private GraphicsPath cachedGripPath;
+        private bool gripPathDirty = true;
 
         [Category("CuoreUI")]
         public Form TargetForm
@@ -78,41 +79,34 @@ namespace CuoreUI.Controls
             Cursor = Cursors.SizeNWSE;
 
             Timer refreshTimer = new Timer();
-            refreshTimer.Interval = 1000;
+            refreshTimer.Interval = 10000;
             refreshTimer.Start();
             refreshTimer.Tick += (e, s) =>
             {
-                dragTimer.Interval = 1000 / Helpers.DrawingHelper.GetHighestRefreshRate();
+                dragTimer.Interval = 10000 / Helpers.DrawingHelper.GetHighestRefreshRate();
             };
         }
 
         private void DragTimer_Tick(object sender, EventArgs e)
         {
-            try
+            if (TargetForm != null)
             {
-                if (TargetForm != null)
+                bool isLeftButtonDown = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0;
+                if (isLeftButtonDown == false)
                 {
-                    bool isLeftButtonDown = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0;
-                    if (isLeftButtonDown == false)
-                    {
-                        dragTimer.Stop();
-                        return;
-                    }
-
-                    if (lastMousePoint == new Point(-1, -1))
-                    {
-                        lastMousePoint = Cursor.Position;
-                    }
-
-                    Point currentMousePoint = Cursor.Position;
-                    Point mouseDelta = GetDelta(currentMousePoint, lastMousePoint);
-                    lastMousePoint = currentMousePoint;
-                    TargetForm.Size = Size.Subtract(TargetForm.Size, (Size)mouseDelta);
-
+                    dragTimer.Stop();
+                    return;
                 }
-            }
-            catch (NullReferenceException)
-            {
+
+                if (lastMousePoint == new Point(-1, -1))
+                {
+                    lastMousePoint = Cursor.Position;
+                }
+
+                Point currentMousePoint = Cursor.Position;
+                Point mouseDelta = GetDelta(currentMousePoint, lastMousePoint);
+                lastMousePoint = currentMousePoint;
+                TargetForm.Size = Size.Subtract(TargetForm.Size, (Size)mouseDelta);
 
             }
         }
@@ -150,37 +144,45 @@ namespace CuoreUI.Controls
             set
             {
                 privateTextureOffset = value;
+                gripPathDirty = true;
                 Invalidate();
             }
         }
 
-        GraphicsPath SquareGripPath(int size)
+        GraphicsPath GetGripPath()
         {
-            int halfSize = size;
-            size *= 2;
-            GraphicsPath gp = new GraphicsPath();
+            if (!gripPathDirty && cachedGripPath != null)
+                return cachedGripPath;
 
-            void CreateAddRect(int x, int y)
+            cachedGripPath?.Dispose();
+
+            int halfSize = GripSize;
+            int size = GripSize * 2;
+
+            var gp = new GraphicsPath();
+
+            void AddRect(int x, int y)
             {
-                gp.AddRectangle(new Rectangle(x + TextureOffset.Width, y + TextureOffset.Height, halfSize, halfSize));
+                gp.AddRectangle(new Rectangle(
+                    x + TextureOffset.Width,
+                    y + TextureOffset.Height,
+                    halfSize,
+                    halfSize));
             }
 
             if (!SkipBottomRightSquare)
-            {
-                CreateAddRect(Width - size, Height - size); // b r
-            }
+                AddRect(Width - size, Height - size);
 
-            CreateAddRect(Width - size, Height - (size * 2)); // 2/3b r
+            AddRect(Width - size, Height - (size * 2));
+            AddRect(Width - size, Height - (size * 3));
+            AddRect(Width - (size * 2), Height - size);
+            AddRect(Width - (size * 3), Height - size);
+            AddRect(Width - (size * 2), Height - (size * 2));
 
-            CreateAddRect(Width - size, Height - (size * 3)); // 1/3b r
+            cachedGripPath = gp;
+            gripPathDirty = false;
 
-            CreateAddRect(Width - (size * 2), Height - size); // b 2/3b
-
-            CreateAddRect(Width - (size * 3), Height - size); // b 1/3b
-
-            CreateAddRect(Width - (size * 2), Height - (size * 2)); // 2/3b 2/3b
-
-            return gp;
+            return cachedGripPath;
         }
 
         private int privateGripSize = 2;
@@ -195,8 +197,15 @@ namespace CuoreUI.Controls
             set
             {
                 privateGripSize = value;
+                gripPathDirty = true;
                 Invalidate();
             }
+        }
+
+        protected override void OnSizeChanged(EventArgs e)
+        {
+            gripPathDirty = true;
+            base.OnSizeChanged(e);
         }
 
         private bool privateSkipBottomRightSquare = false;
@@ -204,13 +213,11 @@ namespace CuoreUI.Controls
         [Category("CuoreUI")]
         public bool SkipBottomRightSquare
         {
-            get
-            {
-                return privateSkipBottomRightSquare;
-            }
+            get => privateSkipBottomRightSquare;
             set
             {
                 privateSkipBottomRightSquare = value;
+                gripPathDirty = true;
                 Invalidate();
             }
         }
@@ -221,11 +228,7 @@ namespace CuoreUI.Controls
             {
                 using (SolidBrush br = new SolidBrush(GripColor))
                 {
-                    using (GraphicsPath GP = SquareGripPath(GripSize))
-                    {
-                        //Region = new Region(GP); // mask support at cost of more user mouse precision needed to drag the resizer
-                        e.Graphics.FillPath(br, GP);
-                    }
+                    e.Graphics.FillPath(br, GetGripPath());
                 }
             }
 

@@ -1,6 +1,7 @@
 ﻿using CuoreUI.Helpers;
 using CuoreUI.Misc.Internal;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -72,29 +73,26 @@ namespace CuoreUI.Controls
                     else if (Items != null && Items.Contains(value))
                     {
                         privateSelectedItem = value;
-                        SelectedIndex = Array.IndexOf(privateItems, privateSelectedItem);
+                        SelectedIndex = privateItems.IndexOf(privateSelectedItem);
                     }
                 }
             }
         }
 
-        private string[] privateItems = new string[] { "Item 1", "Item 2", "Item 3" };
+        private List<string> privateItems = new List<string> { "Item 1", "Item 2", "Item 3" };
 
         [Category("CuoreUI")]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
         public string[] Items
         {
-            get
-            {
-                return privateItems;
-            }
+            get => privateItems.ToArray();
             set
             {
-                privateItems = value;
+                privateItems = value != null ? new List<string>(value) : new List<string>();
 
-                if (value != null && value.Length > 0 && privateSelectedItem != null)
+                if (privateItems.Count > 0 && privateSelectedItem != null)
                 {
-                    if (!value.Contains(privateSelectedItem))
+                    if (!privateItems.Contains(privateSelectedItem))
                     {
                         SelectedIndex = 0;
                     }
@@ -225,7 +223,7 @@ namespace CuoreUI.Controls
         protected override void OnClick(EventArgs e)
         {
             //MessageBox.Show($"{_items.Contains(_selectedItem)}, {_selectedItem}");
-            if (privateItems == null || privateItems.Length == 0)
+            if (privateItems == null || privateItems.Count == 0)
             {
                 return;
             }
@@ -237,7 +235,7 @@ namespace CuoreUI.Controls
 
             PreloadedForms.ComboBoxDropDownForm.BackColor = privateDropDownBackgroundColor;
             PreloadedForms.ComboBoxDropDownForm.ForeColor = DropDownForeColor;
-            PreloadedForms.ComboBoxDropDownForm._selectedIndex = Array.IndexOf(privateItems, privateSelectedItem);
+            PreloadedForms.ComboBoxDropDownForm._selectedIndex = privateItems.IndexOf(privateSelectedItem);
 
             // The ComboBoxDropDownForm.Show method returns a bool:
             // true means the drop down appeared successfully
@@ -282,50 +280,50 @@ namespace CuoreUI.Controls
                 Invalidate();
             }
 
-            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-            e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
-            e.Graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+            Graphics g = e.Graphics;
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
+            g.PixelOffsetMode = PixelOffsetMode.HighQuality;
 
             Rectangle cr = ClientRectangle;
             cr.Inflate(-1, -1);
 
             using (GraphicsPath roundBackground = GeneralHelper.RoundRect(cr, Rounding))
-            using (SolidBrush brush = new SolidBrush(BackgroundColor))
+            using (SolidBrush backgroundBrush = new SolidBrush(BackgroundColor))
             using (Pen pen = new Pen(OutlineColor, OutlineThickness))
+            using (StringFormat centerText = new StringFormat { Alignment = StringAlignment.Center })
+            using (SolidBrush foreBrush = new SolidBrush(ForeColor))
+            using (SolidBrush arrowBrush = new SolidBrush(ExpandArrowColor))
             {
-                e.Graphics.FillPath(brush, roundBackground);
-                e.Graphics.PixelOffsetMode = PixelOffsetMode.Default;
-                e.Graphics.DrawPath(pen, roundBackground);
-            }
+                g.FillPath(backgroundBrush, roundBackground);
+                g.PixelOffsetMode = PixelOffsetMode.Default;
+                g.DrawPath(pen, roundBackground);
 
-            StringFormat centerText = new StringFormat();
-            centerText.Alignment = StringAlignment.Center;
+                string tempItemString = SelectedItem == string.Empty ? NoSelectionText : privateSelectedItem;
+                g.DrawString(
+                    tempItemString,
+                    Font,
+                    foreBrush,
+                    new Point(Width / 2, (Height / 2) - (Font.Height / 2)),
+                    centerText);
 
-            string tempItemString = privateSelectedItem;
+                Rectangle expandRect = ClientRectangle;
+                expandRect.Width = Height / 2;
+                expandRect.X = ClientRectangle.Right - Height / 2;
+                expandRect.Height = expandRect.Width;
+                expandRect.Offset(-expandRect.Width / 2, expandRect.Height / 2);
 
-            if (SelectedItem == "")
-            {
-                tempItemString = NoSelectionText;
-            }
+                expandRect.Width /= 2;
+                expandRect.X = ClientRectangle.Right - Height / 2;
+                expandRect.Height = expandRect.Width;
+                expandRect.Offset(-expandRect.Width / 2, expandRect.Height / 2);
 
-            e.Graphics.DrawString(tempItemString, Font, new SolidBrush(ForeColor), new Point(Width / 2, (Height / 2) - (Font.Height / 2)), centerText);
-
-            //e.Graphics.DrawString(isBrowsingOptions.ToString(), Font, new SolidBrush(ForeColor), new Point(Width / 2, 0), centerText);
-
-            Rectangle expandRect = ClientRectangle;
-            expandRect.Width = Height / 2;
-            expandRect.X = ClientRectangle.Right - Height / 2;
-            expandRect.Height = expandRect.Width;
-            expandRect.Offset(-expandRect.Width / 2, expandRect.Height / 2);
-
-            expandRect.Width /= 2;
-            expandRect.X = ClientRectangle.Right - Height / 2;
-            expandRect.Height = expandRect.Width;
-            expandRect.Offset(-expandRect.Width / 2, expandRect.Height / 2);
-
-            using (GraphicsPath expandAvailable = isBrowsingOptions ? GeneralHelper.RoundTriangle(expandRect, 2, true) : GeneralHelper.RoundTriangle(expandRect, 2))
-            {
-                e.Graphics.FillPath(new SolidBrush(ExpandArrowColor), expandAvailable);
+                using (GraphicsPath expandAvailable = isBrowsingOptions
+                           ? GeneralHelper.RoundTriangle(expandRect, 2, true)
+                           : GeneralHelper.RoundTriangle(expandRect, 2))
+                {
+                    g.FillPath(arrowBrush, expandAvailable);
+                }
             }
 
             base.OnPaint(e);
@@ -349,27 +347,15 @@ namespace CuoreUI.Controls
 
         public void AddItem(string itemToAdd)
         {
-            int newLength = privateItems.Length + 1;
-            string[] newItemsArray = new string[newLength];
-
-            Array.Copy(privateItems, newItemsArray, privateItems.Length);
-            newItemsArray[newLength - 1] = itemToAdd;
-
-            Items = newItemsArray;
+            privateItems.Add(itemToAdd);
+            Invalidate();
         }
 
         public void RemoveItem(string itemToRemove)
         {
-            int indexToRemove = Array.IndexOf(privateItems, itemToRemove);
-
-            if (indexToRemove != -1)
+            if (privateItems.Remove(itemToRemove))
             {
-                string[] newItemsArray = new string[privateItems.Length - 1];
-
-                Array.Copy(privateItems, 0, newItemsArray, 0, indexToRemove);
-                Array.Copy(privateItems, indexToRemove + 1, newItemsArray, indexToRemove, privateItems.Length - indexToRemove - 1);
-
-                Items = newItemsArray;
+                Invalidate();
             }
         }
     }

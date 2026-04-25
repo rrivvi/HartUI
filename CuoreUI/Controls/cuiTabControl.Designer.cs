@@ -25,7 +25,6 @@
             // 
             this.scrollbarTimer.Enabled = true;
             this.scrollbarTimer.Interval = 32;
-            this.scrollbarTimer.Tick += new System.EventHandler(this.scrollbarTimer_Tick);
             // 
             // cuiTabControl
             // 

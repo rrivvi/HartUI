@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
@@ -8,12 +10,7 @@ namespace CuoreUI.Helpers
 {
     internal static class WindowsHelper
     {
-        public static bool IsInDesignMode()
-        {
-            // otherwise we'd get a serialization error in the designer at random times
-            string processName = System.Diagnostics.Process.GetCurrentProcess().ProcessName.ToLower().Trim();
-            return processName.Contains("devenv") || processName.Contains("designtoolsserver");
-        }
+        public static bool IsInDesignMode() => PerPixelAlphaBlend.Win32.IsDesignHost();
 
         [StructLayout(LayoutKind.Sequential)]
         struct OSVERSIONINFOEX
@@ -308,26 +305,80 @@ namespace CuoreUI.Helpers
                 public const byte AC_SRC_OVER = 0x00;
                 public const byte AC_SRC_ALPHA = 0x01;
 
+                internal const int GWL_EXSTYLE = -20;
+                internal const int WS_EX_LAYERED = 0x00080000;
+                internal const int WS_EX_TOOLWINDOW = 0x00000080;
+
+                internal const uint SWP_NOSIZE = 0x0001;
+                internal const uint SWP_NOMOVE = 0x0002;
+                internal const uint SWP_NOZORDER = 0x0004;
+                internal const uint SWP_NOACTIVATE = 0x0010;
+
+                [StructLayout(LayoutKind.Sequential)]
+                internal struct NativePoint
+                {
+                    public int X;
+                    public int Y;
+
+                    public NativePoint(int x, int y)
+                    {
+                        X = x;
+                        Y = y;
+                    }
+                }
+
+                [StructLayout(LayoutKind.Sequential)]
+                internal struct NativeSize
+                {
+                    public int CX;
+                    public int CY;
+
+                    public NativeSize(int cx, int cy)
+                    {
+                        CX = cx;
+                        CY = cy;
+                    }
+                }
+
+                [DllImport("user32.dll", ExactSpelling = true, SetLastError = true)]
+                internal static extern IntPtr GetDC(IntPtr hWnd);
+
+                [DllImport("user32.dll", ExactSpelling = true, SetLastError = true)]
+                internal static extern int ReleaseDC(IntPtr hWnd, IntPtr hDC);
+
+                [DllImport("gdi32.dll", ExactSpelling = true, SetLastError = true)]
+                internal static extern IntPtr CreateCompatibleDC(IntPtr hDC);
+
+                [DllImport("gdi32.dll", ExactSpelling = true, SetLastError = true)]
+                internal static extern bool DeleteDC(IntPtr hdc);
+
+                [DllImport("gdi32.dll", ExactSpelling = true, SetLastError = true)]
+                internal static extern IntPtr SelectObject(IntPtr hDC, IntPtr hObject);
+
+                [DllImport("gdi32.dll", ExactSpelling = true, SetLastError = true)]
+                internal static extern bool DeleteObject(IntPtr hObject);
+
+                internal static bool IsDesignHost()
+                {
+                    if (LicenseManager.UsageMode == LicenseUsageMode.Designtime)
+                    {
+                        return true;
+                    }
+
+                    try
+                    {
+                        string processName = Process.GetCurrentProcess().ProcessName;
+                        return processName.IndexOf("devenv", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                               processName.IndexOf("designtoolsserver", StringComparison.OrdinalIgnoreCase) >= 0;
+                    }
+                    catch
+                    {
+                        return false;
+                    }
+                }
+
                 [DllImport("user32.dll", ExactSpelling = true, SetLastError = true)]
                 public static extern Bool UpdateLayeredWindow(IntPtr hwnd, IntPtr hdcDst, ref Point pptDst, ref Size psize, IntPtr hdcSrc, ref Point pprSrc, int crKey, ref BLENDFUNCTION pblend, int dwFlags);
-
-                [DllImport("user32.dll", ExactSpelling = true, SetLastError = true)]
-                public static extern IntPtr GetDC(IntPtr hWnd);
-
-                [DllImport("user32.dll", ExactSpelling = true)]
-                public static extern int ReleaseDC(IntPtr hWnd, IntPtr hDC);
-
-                [DllImport("gdi32.dll", ExactSpelling = true, SetLastError = true)]
-                public static extern IntPtr CreateCompatibleDC(IntPtr hDC);
-
-                [DllImport("gdi32.dll", ExactSpelling = true, SetLastError = true)]
-                public static extern Bool DeleteDC(IntPtr hdc);
-
-                [DllImport("gdi32.dll", ExactSpelling = true)]
-                public static extern IntPtr SelectObject(IntPtr hDC, IntPtr hObject);
-
-                [DllImport("gdi32.dll", ExactSpelling = true, SetLastError = true)]
-                public static extern Bool DeleteObject(IntPtr hObject);
             }
         }
     }

@@ -3,6 +3,8 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using static CuoreUI.Helpers.DrawingHelper;
@@ -16,6 +18,15 @@ namespace CuoreUI.Controls
     {
         private Bitmap privateHueBitmap;
         private Bitmap privateTriangleBitmap;
+
+        private const float Sin60 = 0.8660254037844386f;
+        private const float Cos60 = 0.5f;
+        private const double RadToDeg = 57.295779513082320876798154814105d;
+
+        private PointF[] trianglePoints = new PointF[3];
+        private PointF[] trianglePointsV2 = new PointF[3];
+        private int cachedGeometrySize = -1;
+        private int cachedGeometryThickness = -1;
 
         public cuiColorPickerWheel()
         {
@@ -56,10 +67,53 @@ namespace CuoreUI.Controls
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool TryBarycentricCoords(PointF p, PointF a, PointF b, PointF c, out float w1, out float w2, out float w3)
+        {
+            BarycentricCoords(p, a, b, c, out w1, out w2, out w3);
+            return w1 >= 0f && w2 >= 0f && w3 >= 0f;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void HsvToArgb(double hue, double saturation, double value, byte alpha, out int argb)
+        {
+            if (saturation <= 0d)
+            {
+                int gray = ClampColor((int)Math.Round(value * 255d));
+                argb = unchecked((int)((uint)alpha << 24 | (uint)gray << 16 | (uint)gray << 8 | (uint)gray));
+                return;
+            }
+
+            hue %= 360d;
+            if (hue < 0d) hue += 360d;
+
+            double h = hue / 60d;
+            int sector = (int)h;
+            double f = h - sector;
+
+            double scaled = value * 255d;
+            int v = ClampColor((int)Math.Round(scaled));
+            int p = ClampColor((int)Math.Round(scaled * (1d - saturation)));
+            int q = ClampColor((int)Math.Round(scaled * (1d - saturation * f)));
+            int t = ClampColor((int)Math.Round(scaled * (1d - saturation * (1d - f))));
+
+            int r, g, b;
+            switch (sector)
+            {
+                case 0: r = v; g = t; b = p; break;
+                case 1: r = q; g = v; b = p; break;
+                case 2: r = p; g = v; b = t; break;
+                case 3: r = p; g = q; b = v; break;
+                case 4: r = t; g = p; b = v; break;
+                default: r = v; g = p; b = q; break;
+            }
+
+            argb = unchecked((int)((uint)alpha << 24 | (uint)r << 16 | (uint)g << 8 | (uint)b));
+        }
+
         #region hue ring & sat/val triangle
         private void GenerateHueBitmap()
         {
-
             int size = Math.Min(Width, Height);
             if (size <= 0)
             {
@@ -68,128 +122,133 @@ namespace CuoreUI.Controls
 
             int outerRadius = size / 2 - 1;
             int innerRadius = outerRadius - WheelThickness;
-            Point center = new Point(size / 2, size / 2);
-            Rectangle rect = new Rectangle(0, 0, size, size);
+            int outer2 = outerRadius * outerRadius;
+            int inner2 = innerRadius * innerRadius;
 
+            Bitmap bmp = new Bitmap(size, size, PixelFormat.Format32bppArgb);
             BitmapData bmpData = null;
+
             try
             {
-                privateHueBitmap?.Dispose();
-                privateHueBitmap = new Bitmap(size, size, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-                bmpData = privateHueBitmap.LockBits(rect, ImageLockMode.WriteOnly, privateHueBitmap.PixelFormat);
+                bmpData = bmp.LockBits(new Rectangle(0, 0, size, size), ImageLockMode.WriteOnly, bmp.PixelFormat);
+
+                int strideInts = bmpData.Stride / 4;
+                int[] pixels = new int[strideInts * size];
+                int cx = size / 2;
+                int cy = size / 2;
+
+                Parallel.For(0, size, y =>
+                {
+                    int dy = y - cy;
+                    int row = y * strideInts;
+
+                    for (int x = 0; x < size; x++)
+                    {
+                        int dx = x - cx;
+                        int dist2 = dx * dx + dy * dy;
+
+                        if (dist2 >= inner2 && dist2 <= outer2)
+                        {
+                            double angle = Math.Atan2(dy, dx) * RadToDeg;
+                            if (angle < 0d) angle += 360d;
+
+                            HsvToArgb(angle, 1d, 1d, 255, out int argb);
+                            pixels[row + x] = argb;
+                        }
+                    }
+                });
+
+                Marshal.Copy(pixels, 0, bmpData.Scan0, pixels.Length);
             }
-            catch
+            finally
             {
-                // Most likely that bitmap is already locked
+                if (bmpData != null)
+                {
+                    bmp.UnlockBits(bmpData);
+                }
+            }
+
+            privateHueBitmap?.Dispose();
+            privateHueBitmap = bmp;
+        }
+
+        private void EnsureGeometry()
+        {
+            int size = Math.Min(Width, Height);
+            if (size == cachedGeometrySize && WheelThickness == cachedGeometryThickness)
+            {
                 return;
             }
 
-            int bytesPerPixel = 4;
-            int stride = bmpData.Stride;
-            IntPtr ptr = bmpData.Scan0;
-            int length = stride * size;
-            byte[] pixels = new byte[length];
+            cachedGeometrySize = size;
+            cachedGeometryThickness = WheelThickness;
 
-            Parallel.For(0, size, y =>
-            {
-                for (int x = 0; x < size; x++)
-                {
-                    int dx = x - center.X;
-                    int dy = y - center.Y;
-                    double dist = Math.Sqrt(dx * dx + dy * dy);
+            float cx = Width / 2f;
+            float cy = Height / 2f;
+            int outerRadius = size / 2 - 1;
+            int innerRadius = outerRadius - WheelThickness;
 
-                    int index = y * stride + x * bytesPerPixel;
+            float r = innerRadius - 1f;
 
-                    if (dist >= innerRadius && dist <= outerRadius)
-                    {
-                        double angle = Math.Atan2(dy, dx) * (180.0 / Math.PI);
-                        if (angle < 0) angle += 360;
-                        Color color = ColorFromHSV(angle, 1, 1);
-                        pixels[index] = color.B;
-                        pixels[index + 1] = color.G;
-                        pixels[index + 2] = color.R;
-                        pixels[index + 3] = 255;
-                    }
-                    else
-                    {
-                        pixels[index] = 0;
-                        pixels[index + 1] = 0;
-                        pixels[index + 2] = 0;
-                        pixels[index + 3] = 0;
-                    }
-                }
-            });
+            trianglePoints[0] = new PointF(cx, cy - r);
+            trianglePoints[1] = new PointF(cx + r * Sin60 - 1f, cy + r * Cos60 - 1f);
+            trianglePoints[2] = new PointF(cx - r * Sin60, cy + r * Cos60 - 1f);
 
-            System.Runtime.InteropServices.Marshal.Copy(pixels, 0, ptr, length);
-            privateHueBitmap.UnlockBits(bmpData);
+            trianglePointsV2[0] = new PointF(cx - 1f, cy - r);
+            trianglePointsV2[1] = trianglePoints[1];
+            trianglePointsV2[2] = trianglePoints[2];
         }
 
         private void GenerateTriangleBitmap(double hue, int size, int innerRadius)
         {
+            Bitmap bmp = new Bitmap(size, size, PixelFormat.Format32bppArgb);
             BitmapData bmpData = null;
+
             try
             {
-                privateTriangleBitmap?.Dispose();
-                privateTriangleBitmap = new Bitmap(size, size, PixelFormat.Format32bppArgb);
-                bmpData = privateTriangleBitmap.LockBits(new Rectangle(0, 0, size, size), ImageLockMode.WriteOnly, privateTriangleBitmap.PixelFormat);
-            }
-            catch
-            {
-                // Most likely that bitmap is already locked
-                return;
-            }
+                bmpData = bmp.LockBits(new Rectangle(0, 0, size, size), ImageLockMode.WriteOnly, bmp.PixelFormat);
 
-            Point center = new Point(size / 2, size / 2);
+                int strideInts = bmpData.Stride / 4;
+                int[] pixels = new int[strideInts * size];
 
-            // vertices of all sides even triangle inside innerRadius
-            PointF pHue = new PointF(center.X, center.Y - innerRadius); // top vertex (hue, sat=1, val=1)
-            PointF pWhite = RotatePoint(center, new PointF(center.X, center.Y - innerRadius), 120); // bottom-left
-            PointF pBlack = RotatePoint(center, new PointF(center.X, center.Y - innerRadius), 240); // bottom-right
+                PointF center = new PointF(size / 2f, size / 2f);
+                float r = innerRadius - 1f;
 
-            int bytesPerPixel = 4;
-            int stride = bmpData.Stride;
-            IntPtr ptr = bmpData.Scan0;
-            int length = stride * size;
-            byte[] pixels = new byte[length];
+                PointF pHue = new PointF(center.X, center.Y - r);
+                PointF pWhite = new PointF(center.X + r * Sin60 - 1f, center.Y + r * Cos60 - 1f);
+                PointF pBlack = new PointF(center.X - r * Sin60, center.Y + r * Cos60 - 1f);
 
-            for (int y = 0; y < size; y++)
-            {
-                for (int x = 0; x < size; x++)
+                for (int y = 0; y < size; y++)
                 {
-                    PointF p = new PointF(x, y);
-                    if (PointInTriangle(p, pHue, pWhite, pBlack))
+                    int row = y * strideInts;
+
+                    for (int x = 0; x < size; x++)
                     {
-                        var barycentric = BarycentricCoords(p, pHue, pWhite, pBlack);
+                        PointF p = new PointF(x, y);
 
-                        // bary.X = hue
-                        // bary.Y = white
-                        // bary.Z = black
+                        if (TryBarycentricCoords(p, pHue, pWhite, pBlack, out float w1, out float w2, out float w3))
+                        {
+                            double saturation = w1;
+                            double value = w1 + w2;
 
-                        // interpolate sat and val
-                        double saturation = barycentric.X;
-                        double value = barycentric.X + barycentric.Y;
-
-                        Color color = ColorFromHSV(hue, saturation, value);
-
-                        int idx = y * stride + x * bytesPerPixel;
-                        pixels[idx] = color.B;
-                        pixels[idx + 1] = color.G;
-                        pixels[idx + 2] = color.R;
-                        pixels[idx + 3] = 255;
+                            HsvToArgb(hue, saturation, value, 255, out int argb);
+                            pixels[row + x] = argb;
+                        }
                     }
-                    else
-                    {
-                        int idx = y * stride + x * bytesPerPixel;
-                        pixels[idx] = 0;
-                        pixels[idx + 1] = 0;
-                        pixels[idx + 2] = 0;
-                        pixels[idx + 3] = 0;
-                    }
+                }
+
+                Marshal.Copy(pixels, 0, bmpData.Scan0, pixels.Length);
+            }
+            finally
+            {
+                if (bmpData != null)
+                {
+                    bmp.UnlockBits(bmpData);
                 }
             }
 
-            System.Runtime.InteropServices.Marshal.Copy(pixels, 0, ptr, length);
-            privateTriangleBitmap.UnlockBits(bmpData);
+            privateTriangleBitmap?.Dispose();
+            privateTriangleBitmap = bmp;
         }
         #endregion
 
@@ -201,6 +260,9 @@ namespace CuoreUI.Controls
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);
+
+            // ensure triangle geometry is cached
+            EnsureGeometry();
 
             int size = Math.Min(Width, Height);
             int x = (Width - size) / 2;
@@ -220,23 +282,26 @@ namespace CuoreUI.Controls
             }
             catch
             {
-                // Most likely hue ring bitmap is locked and it shouldn't be touched right now
+                // most likely hue ring bitmap is locked and it shouldn't be touched right now
                 return;
             }
 
             int outerRadius = size / 2 - 1;
             int innerRadius = outerRadius - WheelThickness;
 
-            // value/sat triangle
+            // val/sat triangle
             if (privateTriangleBitmap == null || previouslyPaintedHue != privateHue)
             {
                 previouslyPaintedHue = privateHue;
-                GenerateTriangleBitmap((int)privateHue, size, innerRadius - 1);
-                //GenerateHueBitmap();
+                GenerateTriangleBitmap(privateHue, size, innerRadius - 1);
             }
 
             using (Pen antialiasPen = new Pen(BackColor, 4))
-            using (Pen whereClickPen1 = new Pen(Color.FromArgb(128, 0, 0, 0), 2f) { StartCap = LineCap.Round, EndCap = LineCap.Round })
+            using (Pen whereClickPen1 = new Pen(Color.FromArgb(128, 0, 0, 0), 2f)
+            {
+                StartCap = LineCap.Round,
+                EndCap = LineCap.Round
+            })
             {
                 Rectangle modifiedCR = ClientRectangle;
                 modifiedCR.Size = new Size(size, size);
@@ -244,6 +309,7 @@ namespace CuoreUI.Controls
                 modifiedCR.Y = y;
                 modifiedCR.Inflate(-1, -1);
 
+                // outer + inner ring borders (fake anti aliasing)
                 e.Graphics.DrawEllipse(antialiasPen, modifiedCR);
                 modifiedCR.Inflate(-WheelThickness, -WheelThickness);
                 e.Graphics.DrawEllipse(antialiasPen, modifiedCR);
@@ -254,47 +320,49 @@ namespace CuoreUI.Controls
                 }
                 catch
                 {
-                    // Most likely sat/val triangle bitmap is locked and it shouldn't be touched right now
+                    // most likely sat/val triangle bitmap is locked and it shouldn't be touched right now
                     return;
                 }
+
+                antialiasPen.Width = 2;
+                e.Graphics.DrawPolygon(antialiasPen, trianglePoints);
+                e.Graphics.DrawPolygon(antialiasPen, trianglePointsV2);
 
                 int centerX = Width / 2;
                 int centerY = Height / 2;
 
-                float r = innerRadius;
+                double radians = privateHue * (Math.PI / 180.0);
 
-                // triangle with all sides even
-                // the center and left are offset because when the control's
-                // width is odd there is a small visual glitch without this code
-                // (because we fake antialias for the bitmaps)
-                PointF p1 = new PointF(centerX, centerY - r);
-                PointF p1v2 = new PointF(centerX - 1, centerY - r);
-                PointF p2 = new PointF(centerX + r * (float)Math.Sin(Math.PI / 3) - 1, centerY + r * (float)Math.Cos(Math.PI / 3) - 1);
-                PointF p3 = new PointF(centerX - r * (float)Math.Sin(Math.PI / 3), centerY + r * (float)Math.Cos(Math.PI / 3) - 1);
+                float cos = (float)Math.Cos(radians);
+                float sin = (float)Math.Sin(radians);
 
-                PointF[] trianglePoints = { p1, p2, p3 };
-                PointF[] trianglePointsv2 = { p1v2, p2, p3 };
+                float radius = (Width > Height ? centerY : centerX) - 2;
 
-                antialiasPen.Width = 2;
-                e.Graphics.DrawPolygon(antialiasPen, trianglePoints);
-                e.Graphics.DrawPolygon(antialiasPen, trianglePointsv2);
-
-                // hue is range <0 - 360)
-                double radians = privateHue * 3.14d / 180.0;
-                float startX = centerX + (float)(((Width > Height ? centerY : centerX) - 2) * Math.Cos(radians));
-                float startY = centerY + (float)((centerY - 2) * Math.Sin(radians));
+                float startX = centerX + radius * cos;
+                float startY = centerY + radius * sin;
 
                 PointF p1hueSelectorPoint = new PointF(startX, startY);
-                PointF p2hueSelectorPoint = PointTowardsCenter(p1hueSelectorPoint, centerX, centerY, privateWheelThickness);
+                PointF p2hueSelectorPoint = PointTowardsCenter(
+                    p1hueSelectorPoint,
+                    centerX,
+                    centerY,
+                    privateWheelThickness);
 
                 e.Graphics.DrawEllipse(whereClickPen1, clickRectangle);
+
                 whereClickPen1.Width = 4f;
-                e.Graphics.DrawLine(whereClickPen1, p1hueSelectorPoint.X, p1hueSelectorPoint.Y, p2hueSelectorPoint.X, p2hueSelectorPoint.Y);
+                e.Graphics.DrawLine(whereClickPen1,
+                    p1hueSelectorPoint.X, p1hueSelectorPoint.Y,
+                    p2hueSelectorPoint.X, p2hueSelectorPoint.Y);
+
                 whereClickPen1.Width = 0.4f;
                 whereClickPen1.Color = Color.White;
                 e.Graphics.DrawEllipse(whereClickPen1, clickRectangle);
+
                 whereClickPen1.Width = 3f;
-                e.Graphics.DrawLine(whereClickPen1, p1hueSelectorPoint.X, p1hueSelectorPoint.Y, p2hueSelectorPoint.X, p2hueSelectorPoint.Y);
+                e.Graphics.DrawLine(whereClickPen1,
+                    p1hueSelectorPoint.X, p1hueSelectorPoint.Y,
+                    p2hueSelectorPoint.X, p2hueSelectorPoint.Y);
 
                 // e.Graphics.DrawString(privateHue.ToString(), Font, Brushes.Black, Point.Empty);
             }

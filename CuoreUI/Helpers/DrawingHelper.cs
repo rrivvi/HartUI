@@ -1,9 +1,9 @@
 ﻿using CuoreUI.Misc.Internal;
 using System;
-using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
+using System.Runtime.CompilerServices;
 using System.Windows.Forms;
 
 namespace CuoreUI.Helpers
@@ -31,32 +31,7 @@ namespace CuoreUI.Helpers
         // (timers with Interval = 0 throw exceptions, and the library has timers which rely on this)
         public static int GetHighestRefreshRate() => Math.Min(Math.Max(1, WindowsHelper.GetRefreshRate()), 1000);
 
-        internal class TimeDeltaInstance
-        {
-            private Stopwatch stopwatch = Stopwatch.StartNew();
-            private long lastElapsedTicks;
-
-            public float TimeDelta
-            {
-                get
-                {
-                    long currentElapsedTicks = stopwatch.ElapsedTicks;
-                    long deltaTicks = currentElapsedTicks - lastElapsedTicks;
-                    lastElapsedTicks = currentElapsedTicks;
-
-                    float deltaSeconds = (float)deltaTicks / Stopwatch.Frequency;
-                    return deltaSeconds * 100f;
-                }
-            }
-        }
-
-        public static int LazyTimeDelta
-        {
-            get
-            {
-                return 1000 / GetHighestRefreshRate();
-            }
-        }
+        public static int LazyTimeDelta => 1000 / GetHighestRefreshRate();
 
         static Timer refreshRateTimerIntervalUpdaterTimer = new Timer();
         static byte frame = 0;
@@ -90,49 +65,90 @@ namespace CuoreUI.Helpers
                 };
             }
         }
-        static int ClampColor(int i)
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static int ClampColor(int i)
         {
-            if (i < 0) return 0;
-            if (i > 255) return 255;
-            return i;
+            return i < 0 ? 0 : (i > 255 ? 255 : i);
         }
 
-        // https://stackoverflow.com/questions/1335426/is-there-a-built-in-c-net-system-api-for-hsv-to-rgb
-        // https://stackoverflow.com/a/1626232
-        // https://stackoverflow.com/users/12971/greg
         public static void ColorToHSV(Color color, out double hue, out double saturation, out double value)
         {
-            int max = Math.Max(color.R, Math.Max(color.G, color.B));
-            int min = Math.Min(color.R, Math.Min(color.G, color.B));
+            int r = color.R;
+            int g = color.G;
+            int b = color.B;
 
-            hue = color.GetHue();
-            saturation = max == 0 ? 0 : 1d - 1d * min / max;
+            int max = r > g ? (r > b ? r : b) : (g > b ? g : b);
+            int min = r < g ? (r < b ? r : b) : (g < b ? g : b);
+
             value = max / 255d;
+
+            if (max == 0)
+            {
+                saturation = 0d;
+                hue = 0d;
+                return;
+            }
+
+            saturation = (max - min) / (double)max;
+
+            if (max == min)
+            {
+                hue = 0d;
+                return;
+            }
+
+            double delta = max - min;
+
+            if (max == r)
+            {
+                hue = 60d * ((g - b) / delta);
+                if (hue < 0d) hue += 360d;
+            }
+            else if (max == g)
+            {
+                hue = 60d * ((b - r) / delta + 2d);
+            }
+            else
+            {
+                hue = 60d * ((r - g) / delta + 4d);
+            }
         }
 
         public static Color ColorFromHSV(double hue, double saturation, double value, byte alpha = 255)
         {
-            int hi = Convert.ToInt32(Math.Floor(hue / 60)) % 6;
-            double f = hue / 60 - Math.Floor(hue / 60);
+            if (saturation <= 0d)
+            {
+                int gray = ClampColor((int)Math.Round(value * 255d));
+                return Color.FromArgb(alpha, gray, gray, gray);
+            }
 
-            value = value * 255;
-            int v = ClampColor(Convert.ToInt32(value));
-            int p = ClampColor(Convert.ToInt32(value * (1 - saturation)));
-            int q = ClampColor(Convert.ToInt32(value * (1 - f * saturation)));
-            int t = ClampColor(Convert.ToInt32(value * (1 - (1 - f) * saturation)));
+            hue %= 360d;
+            if (hue < 0d) hue += 360d;
 
-            if (hi == 0)
-                return Color.FromArgb(alpha, v, t, p);
-            else if (hi == 1)
-                return Color.FromArgb(alpha, q, v, p);
-            else if (hi == 2)
-                return Color.FromArgb(alpha, p, v, t);
-            else if (hi == 3)
-                return Color.FromArgb(alpha, p, q, v);
-            else if (hi == 4)
-                return Color.FromArgb(alpha, t, p, v);
-            else
-                return Color.FromArgb(alpha, v, p, q);
+            double h = hue / 60d;
+            int sector = (int)h;
+            double f = h - sector;
+
+            double scaled = value * 255d;
+            double p = scaled * (1d - saturation);
+            double q = scaled * (1d - saturation * f);
+            double t = scaled * (1d - saturation * (1d - f));
+
+            int v = ClampColor((int)Math.Round(scaled));
+            int pi = ClampColor((int)Math.Round(p));
+            int qi = ClampColor((int)Math.Round(q));
+            int ti = ClampColor((int)Math.Round(t));
+
+            switch (sector)
+            {
+                case 0: return Color.FromArgb(alpha, v, ti, pi);
+                case 1: return Color.FromArgb(alpha, qi, v, pi);
+                case 2: return Color.FromArgb(alpha, pi, v, ti);
+                case 3: return Color.FromArgb(alpha, pi, qi, v);
+                case 4: return Color.FromArgb(alpha, ti, pi, v);
+                default: return Color.FromArgb(alpha, v, pi, qi);
+            }
         }
 
         public static class Imaging
@@ -166,12 +182,14 @@ namespace CuoreUI.Helpers
                       new float[]{0, 0, 0, 0, 1 }
                     });
 
-                    ImageAttributes imageAttributes = new ImageAttributes();
-                    imageAttributes.SetColorMatrix(colorMatrix, ColorMatrixFlag.Default, ColorAdjustType.Bitmap);
+                    using (ImageAttributes imageAttributes = new ImageAttributes())
+                    {
+                        imageAttributes.SetColorMatrix(colorMatrix, ColorMatrixFlag.Default, ColorAdjustType.Bitmap);
 
-                    graphics.DrawImage(originalBitmap, new Rectangle(0, 0, originalBitmap.Width, originalBitmap.Height),
-                                0, 0, originalBitmap.Width, originalBitmap.Height,
-                                GraphicsUnit.Pixel, imageAttributes);
+                        graphics.DrawImage(originalBitmap, new Rectangle(0, 0, originalBitmap.Width, originalBitmap.Height),
+                                    0, 0, originalBitmap.Width, originalBitmap.Height,
+                                    GraphicsUnit.Pixel, imageAttributes);
+                    }
                 }
 
                 return tintedBitmap;

@@ -5,10 +5,6 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Windows.Forms;
-using Color = System.Drawing.Color;
-using Image = System.Drawing.Image;
-using Matrix = System.Drawing.Drawing2D.Matrix;
-using Pen = System.Drawing.Pen;
 
 namespace CuoreUI.Controls
 {
@@ -18,67 +14,39 @@ namespace CuoreUI.Controls
         public cuiPictureBox()
         {
             InitializeComponent();
-            // double buffer removes flickering when animating opacity and/or location with cuiControlAnimator
             SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer, true);
         }
 
-        Image cachedImage = null;
         private Image privateContent = null;
+
+        private Bitmap cachedImage = null;
+        private TextureBrush cachedImageBrush = null;
+
+        private Color lastTint = Color.Empty;
+        private int lastRotation = int.MinValue;
+
+        private Matrix transformMatrix = new Matrix();
 
         [Category("CuoreUI")]
         public Image Content
         {
-            get
-            {
-                return privateContent;
-            }
+            get => privateContent;
             set
             {
-                if (value != null)
-                {
-                    privateContent = value;
-                    cachedImage = null;
-                    cachedImageBrush = null;
-                    TintImage();
-                }
-                else
-                {
-                    privateContent = null;
-                }
-                Invalidate();
+                if (privateContent == value)
+                    return;
+
+                privateContent = value;
+                RebuildCache();
             }
         }
 
-        private void DiposeIfPossible(ref Image target)
-        {
-            try
-            {
-                target?.Dispose();
-            }
-            catch {; }
-            target = null;
-        }
-
-        private void DiposeIfPossible(ref TextureBrush target)
-        {
-            try
-            {
-                target?.Image?.Dispose();
-                target?.Dispose();
-            }
-            catch { }
-            target = null;
-        }
-
-        private Padding privateCornerRadius = new Padding(8, 8, 8, 8);
+        private Padding privateCornerRadius = new Padding(8);
 
         [Category("CuoreUI")]
         public Padding Rounding
         {
-            get
-            {
-                return privateCornerRadius;
-            }
+            get => privateCornerRadius;
             set
             {
                 privateCornerRadius = value;
@@ -86,98 +54,20 @@ namespace CuoreUI.Controls
             }
         }
 
-        private void TintImage()
-        {
-            if (privateContent == null)
-                return;
-
-            Bitmap tintedBitmap = new Bitmap(privateContent.Width, privateContent.Height);
-
-            using (Graphics graphics = Graphics.FromImage(tintedBitmap))
-            {
-                graphics.SmoothingMode = SmoothingMode.AntiAlias;
-                graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
-
-                float r = ImageTint.R / 255f;
-                float g = ImageTint.G / 255f;
-                float b = ImageTint.B / 255f;
-                float a = ImageTint.A / 255f;
-
-                ColorMatrix colorMatrix = new ColorMatrix(new float[][]
-                {
-                    new float[] {r, 0, 0, 0, 0},
-                    new float[] {0, g, 0, 0, 0},
-                    new float[] {0, 0, b, 0, 0},
-                    new float[] {0, 0, 0, a, 0},
-                    new float[] {0, 0, 0, 0, 1}
-                });
-
-                ImageAttributes imageAttributes = new ImageAttributes();
-                imageAttributes.SetColorMatrix(colorMatrix, ColorMatrixFlag.Default, ColorAdjustType.Bitmap);
-
-                try
-                {
-                    graphics.DrawImage(privateContent, new Rectangle(0, 0, privateContent.Width, privateContent.Height),
-                                0, 0, privateContent.Width, privateContent.Height,
-                                GraphicsUnit.Pixel, imageAttributes);
-                }
-                catch (InvalidOperationException)
-                {
-
-                }
-            }
-
-            cachedImageBrush = new TextureBrush(tintedBitmap, WrapMode.Clamp);
-            cachedImage = tintedBitmap;
-        }
-
-        private TextureBrush cachedImageBrush = null;
-
         private Color privateImageTint = Color.White;
 
         [Category("CuoreUI")]
         public Color ImageTint
         {
-            get
-            {
-                return privateImageTint;
-            }
+            get => privateImageTint;
             set
             {
+                if (privateImageTint == value)
+                    return;
+
                 privateImageTint = value;
-                TintImage();
-                Invalidate();
+                RebuildCache();
             }
-        }
-
-        protected override void OnPaint(PaintEventArgs e)
-        {
-            if (cachedImage == null)
-            {
-                DiposeIfPossible(ref privateContent);
-                DiposeIfPossible(ref cachedImage);
-                DiposeIfPossible(ref cachedImageBrush);
-                return;
-            }
-
-            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-            e.Graphics.InterpolationMode = InterpolationMode.HighQualityBilinear;
-            e.Graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
-
-            Rectangle fixedCR = ClientRectangle;
-            fixedCR.Inflate(-1, -1);
-
-            using (Pen pen = new Pen(PanelOutlineColor, OutlineThickness))
-            using (GraphicsPath roundBg = GeneralHelper.RoundRect(fixedCR, Rounding))
-            {
-                GenerateTransformMatrix();
-                e.Graphics.FillPath(cachedImageBrush, roundBg);
-                e.Graphics.PixelOffsetMode = PixelOffsetMode.Default;
-                e.Graphics.DrawPath(pen, roundBg);
-            }
-
-            base.OnPaint(e);
         }
 
         private int privateRotation = 0;
@@ -185,30 +75,25 @@ namespace CuoreUI.Controls
         [Category("CuoreUI")]
         public int Rotation
         {
-            get
-            {
-                return privateRotation;
-            }
+            get => privateRotation;
             set
             {
-                if (privateRotation != value)
-                {
-                    privateRotation = value % 360;
-                    Content = Content; // because refresh doesnt transform image but Content's setter does
-                }
+                value %= 360;
+                if (privateRotation == value)
+                    return;
+
+                privateRotation = value;
+                UpdateTransform();
+                Invalidate();
             }
         }
 
-        // empty to not affect already existing projects that use cuoreui and have a picturebox
         private Color privatePanelOutlineColor = Color.Empty;
 
         [Category("CuoreUI")]
         public Color PanelOutlineColor
         {
-            get
-            {
-                return privatePanelOutlineColor;
-            }
+            get => privatePanelOutlineColor;
             set
             {
                 privatePanelOutlineColor = value;
@@ -221,10 +106,7 @@ namespace CuoreUI.Controls
         [Category("CuoreUI")]
         public float OutlineThickness
         {
-            get
-            {
-                return privateOutlineThickness;
-            }
+            get => privateOutlineThickness;
             set
             {
                 privateOutlineThickness = value;
@@ -232,32 +114,112 @@ namespace CuoreUI.Controls
             }
         }
 
-        private void GenerateTransformMatrix()
+        private void RebuildCache()
         {
-            if (cachedImageBrush.Image == null)
+            DisposeCache();
+
+            if (privateContent == null)
             {
+                Invalidate();
                 return;
             }
 
-            Size imageSize = cachedImageBrush.Image.Size;
+            // Create tinted bitmap
+            cachedImage = new Bitmap(privateContent.Width, privateContent.Height);
 
-            float scaleX = (float)Width / imageSize.Width;
-            float scaleY = (float)Height / imageSize.Height;
-
-            using (Matrix matrix = new Matrix())
+            using (Graphics g = Graphics.FromImage(cachedImage))
+            using (ImageAttributes attr = new ImageAttributes())
             {
-                matrix.RotateAt(Rotation, new PointF(Width / 2f, Height / 2f));
-                matrix.Scale(scaleX, scaleY);
-                cachedImageBrush.Transform = matrix;
+                float r = ImageTint.R / 255f;
+                float gC = ImageTint.G / 255f;
+                float b = ImageTint.B / 255f;
+                float a = ImageTint.A / 255f;
+
+                var matrix = new ColorMatrix(new float[][]
+                {
+                    new float[] {r, 0, 0, 0, 0},
+                    new float[] {0, gC, 0, 0, 0},
+                    new float[] {0, 0, b, 0, 0},
+                    new float[] {0, 0, 0, a, 0},
+                    new float[] {0, 0, 0, 0, 1}
+                });
+
+                attr.SetColorMatrix(matrix);
+
+                g.DrawImage(privateContent,
+                    new Rectangle(0, 0, cachedImage.Width, cachedImage.Height),
+                    0, 0, privateContent.Width, privateContent.Height,
+                    GraphicsUnit.Pixel, attr);
             }
+
+            cachedImageBrush = new TextureBrush(cachedImage, WrapMode.Clamp);
+
+            lastTint = ImageTint;
+            lastRotation = privateRotation;
+
+            UpdateTransform();
+            Invalidate();
         }
 
-        private void cuiPictureBox_Resize(object sender, EventArgs e)
+        private void UpdateTransform()
         {
-            if (Content != null)
+            if (cachedImageBrush == null || cachedImage == null)
+                return;
+
+            transformMatrix.Reset();
+
+            float scaleX = (float)Width / cachedImage.Width;
+            float scaleY = (float)Height / cachedImage.Height;
+
+            transformMatrix.Scale(scaleX, scaleY);
+            transformMatrix.RotateAt(privateRotation, new PointF(Width / 2f, Height / 2f));
+
+            cachedImageBrush.Transform = transformMatrix;
+        }
+
+        private void DisposeCache()
+        {
+            cachedImageBrush?.Dispose();
+            cachedImageBrush = null;
+
+            cachedImage?.Dispose();
+            cachedImage = null;
+        }
+
+        protected override void OnResize(EventArgs e)
+        {
+            base.OnResize(e);
+            UpdateTransform();
+            Invalidate();
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            if (cachedImageBrush == null)
+                return;
+
+            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+            e.Graphics.InterpolationMode = InterpolationMode.HighQualityBilinear;
+            e.Graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+
+            Rectangle rect = ClientRectangle;
+            rect.Inflate(-1, -1);
+
+            using (GraphicsPath path = GeneralHelper.RoundRect(rect, Rounding))
             {
-                Content = Content;
+                e.Graphics.FillPath(cachedImageBrush, path);
+
+                if (OutlineThickness > 0 && PanelOutlineColor != Color.Empty)
+                {
+                    using (Pen pen = new Pen(PanelOutlineColor, OutlineThickness))
+                    {
+                        e.Graphics.PixelOffsetMode = PixelOffsetMode.Default;
+                        e.Graphics.DrawPath(pen, path);
+                    }
+                }
             }
+
+            base.OnPaint(e);
         }
     }
 }

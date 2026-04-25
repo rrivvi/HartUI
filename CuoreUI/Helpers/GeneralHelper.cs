@@ -2,6 +2,7 @@
 using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Runtime.CompilerServices;
 using System.Windows.Forms;
 
 namespace CuoreUI.Helpers
@@ -81,16 +82,16 @@ namespace CuoreUI.Helpers
         {
             GraphicsPath path = new GraphicsPath();
 
-            float diameter1 = (float)checked(borderRadius.Top * 2);
+            float diameter1 = checked(borderRadius.Top * 2);
             AddArc(rectangle.X, rectangle.Y, diameter1, 180f, 90f);
 
-            float diameter2 = (float)checked(borderRadius.Left * 2);
+            float diameter2 = checked(borderRadius.Left * 2);
             AddArc(rectangle.Right - diameter2, rectangle.Y, diameter2, 270f, 90f);
 
-            float diameter3 = (float)checked(borderRadius.Bottom * 2);
+            float diameter3 = checked(borderRadius.Bottom * 2);
             AddArc(rectangle.Right - diameter3, rectangle.Bottom - diameter3, diameter3, 0.0f, 90f);
 
-            float diameter4 = (float)checked(borderRadius.Right * 2);
+            float diameter4 = checked(borderRadius.Right * 2);
             AddArc(rectangle.X, rectangle.Bottom - diameter4, diameter4, 90f, 90f);
 
             path.CloseFigure();
@@ -98,7 +99,7 @@ namespace CuoreUI.Helpers
 
             void AddArc(float x, float y, float diameter, float startAngle, float sweepAngle)
             {
-                if ((double)diameter > 0.0)
+                if (diameter > 0.0f)
                 {
                     RectangleF rect = new RectangleF(x, y, diameter, diameter);
                     path.AddArc(rect, startAngle, sweepAngle);
@@ -368,73 +369,23 @@ namespace CuoreUI.Helpers
             return path;
         }
 
+        private const float DegToRadF = 0.017453292519943295769236907684886f;
+        private const double DegToRadD = 0.017453292519943295769236907684886d;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static PointF PointOnCircle(float centerX, float centerY, float radius, float angleInDegrees)
         {
-            float angleInRadians = (float)(angleInDegrees * Math.PI / 180.0);
-            float x = centerX + radius * (float)Math.Cos(angleInRadians);
-            float y = centerY + radius * (float)Math.Sin(angleInRadians);
-            return new PointF(x, y);
+            float angleInRadians = angleInDegrees * DegToRadF;
+            float cos = (float)Math.Cos(angleInRadians);
+            float sin = (float)Math.Sin(angleInRadians);
+
+            return new PointF(centerX + radius * cos, centerY + radius * sin);
         }
 
-        public static PointF ClosestPointOnSegment(PointF p, PointF a, PointF b)
-        {
-            float abx = b.X - a.X;
-            float aby = b.Y - a.Y;
-            float apx = p.X - a.X;
-            float apy = p.Y - a.Y;
-
-            float ab2 = abx * abx + aby * aby;
-            if (ab2 <= float.Epsilon)
-            {
-                return a;
-            }
-
-            float t = (apx * abx + apy * aby) / ab2;
-            if (t <= 0)
-            {
-                return a;
-            }
-
-            if (t >= 1)
-            {
-                return b;
-            }
-
-            return new PointF(a.X + abx * t, a.Y + aby * t);
-        }
-
-        public static PointF ClosestPointOnTriangle(PointF p, PointF a, PointF b, PointF c)
-        {
-            PointF bestMatch = ClosestPointOnSegment(p, a, b);
-            float bestD = DistanceSquared(p, bestMatch);
-
-            PointF q = ClosestPointOnSegment(p, b, c);
-            float d = DistanceSquared(p, q);
-            if (d < bestD)
-            {
-                bestMatch = q;
-                bestD = d;
-            }
-
-            q = ClosestPointOnSegment(p, c, a);
-            if (DistanceSquared(p, q) < bestD)
-            {
-                bestMatch = q;
-            }
-
-            return bestMatch;
-        }
-
-        public static float DistanceSquared(PointF p1, PointF p2)
-        {
-            float dx = p1.X - p2.X;
-            float dy = p1.Y - p2.Y;
-            return dx * dx + dy * dy;
-        }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static PointF RotatePoint(PointF origin, PointF point, float angleDegrees)
         {
-            double angleRadians = angleDegrees * Math.PI / 180.0;
+            double angleRadians = angleDegrees * DegToRadD;
             float cosA = (float)Math.Cos(angleRadians);
             float sinA = (float)Math.Sin(angleRadians);
 
@@ -444,6 +395,73 @@ namespace CuoreUI.Helpers
             return new PointF(
                 dx * cosA - dy * sinA + origin.X,
                 dx * sinA + dy * cosA + origin.Y);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float DistanceSquared(PointF p1, PointF p2)
+        {
+            float dx = p1.X - p2.X;
+            float dy = p1.Y - p2.Y;
+            return dx * dx + dy * dy;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static PointF ClosestPointOnSegment(PointF p, PointF a, PointF b, out float distanceSquared)
+        {
+            float abx = b.X - a.X;
+            float aby = b.Y - a.Y;
+            float apx = p.X - a.X;
+            float apy = p.Y - a.Y;
+
+            float ab2 = abx * abx + aby * aby;
+            if (ab2 <= 0f)
+            {
+                distanceSquared = DistanceSquared(p, a);
+                return a;
+            }
+
+            float t = (apx * abx + apy * aby) / ab2;
+            if (t <= 0f)
+            {
+                distanceSquared = DistanceSquared(p, a);
+                return a;
+            }
+
+            if (t >= 1f)
+            {
+                distanceSquared = DistanceSquared(p, b);
+                return b;
+            }
+
+            float x = a.X + abx * t;
+            float y = a.Y + aby * t;
+
+            float dx = p.X - x;
+            float dy = p.Y - y;
+            distanceSquared = dx * dx + dy * dy;
+
+            return new PointF(x, y);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static PointF ClosestPointOnTriangle(PointF p, PointF a, PointF b, PointF c)
+        {
+            PointF best = ClosestPointOnSegment(p, a, b, out float bestD);
+
+            PointF q = ClosestPointOnSegment(p, b, c, out float d);
+            if (d < bestD)
+            {
+                best = q;
+                bestD = d;
+            }
+
+            q = ClosestPointOnSegment(p, c, a, out d);
+            if (d < bestD)
+            {
+                best = q;
+            }
+
+            return best;
         }
 
         public static bool PointInTriangle(PointF p, PointF p0, PointF p1, PointF p2)
@@ -464,14 +482,22 @@ namespace CuoreUI.Helpers
                 : (s >= 0 && st <= A);
         }
 
-        public static (float X, float Y, float Z) BarycentricCoords(PointF p, PointF a, PointF b, PointF c)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void BarycentricCoords(PointF p, PointF a, PointF b, PointF c,
+            out float w1, out float w2, out float w3)
         {
             float denom = (b.Y - c.Y) * (a.X - c.X) + (c.X - b.X) * (a.Y - c.Y);
             float invDenom = 1f / denom;
-            float w1 = ((b.Y - c.Y) * (p.X - c.X) + (c.X - b.X) * (p.Y - c.Y)) * invDenom;
-            float w2 = ((c.Y - a.Y) * (p.X - c.X) + (a.X - c.X) * (p.Y - c.Y)) * invDenom;
-            float w3 = 1f - w1 - w2;
-            return (w1, w2, w3);
+
+            w1 = ((b.Y - c.Y) * (p.X - c.X) + (c.X - b.X) * (p.Y - c.Y)) * invDenom;
+            w2 = ((c.Y - a.Y) * (p.X - c.X) + (a.X - c.X) * (p.Y - c.Y)) * invDenom;
+            w3 = 1f - w1 - w2;
+        }
+
+        public static (float X, float Y, float Z) BarycentricCoords(PointF p, PointF a, PointF b, PointF c)
+        {
+            BarycentricCoords(p, a, b, c, out float x, out float y, out float z);
+            return (x, y, z);
         }
     }
 }

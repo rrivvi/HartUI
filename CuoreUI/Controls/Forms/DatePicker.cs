@@ -108,7 +108,7 @@ namespace CuoreUI.Controls.Forms
         }
 
         private Themes privateTheme = Themes.Dark;
-        public Themes Theme // i'll handle themes like this for now
+        public Themes Theme // why did I even settle on this in the first place??? todo
         {
             get
             {

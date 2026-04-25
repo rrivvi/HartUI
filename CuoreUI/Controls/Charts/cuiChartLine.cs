@@ -332,126 +332,123 @@ namespace CuoreUI.Controls.Charts
         {
             Graphics g = e.Graphics;
 
-            int chartWidth = this.Width - chartPadding * 2;
-            int chartHeight = this.Height - chartPadding * 2;
+            int chartWidth = Width - chartPadding * 2;
+            int chartHeight = Height - chartPadding * 2;
+            int pointCount = privateDataPoints?.Length ?? 0;
 
-            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-            e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
 
-            Pen axisPen = new Pen(AxisColor, 1);
-            Pen dashedPen = new Pen(Color.FromArgb(64, AxisColor), 1) { DashStyle = DashStyle.Dash };
-            Pen linePen = new Pen(ChartLineColor, 2);
-
-            g.DrawLine(axisPen, chartPadding, chartPadding, chartPadding, chartHeight + chartPadding);
-            g.DrawLine(axisPen, chartPadding, chartHeight + chartPadding, chartWidth + chartPadding, chartHeight + chartPadding);
-
-            if (privateShowLines)
+            using (Pen axisPen = new Pen(AxisColor, 1))
+            using (Pen dashedPen = new Pen(Color.FromArgb(64, AxisColor), 1) { DashStyle = DashStyle.Dash })
+            using (Pen linePen = new Pen(ChartLineColor, 2))
             {
-                for (int i = 1; i <= 5; i++)
+                g.DrawLine(axisPen, chartPadding, chartPadding, chartPadding, chartHeight + chartPadding);
+                g.DrawLine(axisPen, chartPadding, chartHeight + chartPadding, chartWidth + chartPadding, chartHeight + chartPadding);
+
+                if (privateShowLines)
                 {
-                    float y = chartPadding + chartHeight - (i * chartHeight / 5);
-                    g.DrawLine(dashedPen, chartPadding, y, chartWidth + chartPadding, y);
+                    for (int i = 1; i <= 5; i++)
+                    {
+                        float y = chartPadding + chartHeight - (i * chartHeight / 5f);
+                        g.DrawLine(dashedPen, chartPadding, y, chartWidth + chartPadding, y);
+                    }
                 }
-            }
 
-            float yScaleFactor = 100f / privateMaxValue;
-
-            if (privateDataPoints.Length > 1)
-            {
-                using (GraphicsPath linePath = new GraphicsPath())
+                if (pointCount > 1 && privateMaxValue > 0)
                 {
-                    float startX = chartPadding;
-                    float startY = chartPadding + chartHeight - (privateDataPoints[0] * yScaleFactor / 100 * chartHeight);
-                    linePath.StartFigure();
-                    linePath.AddLine(startX, chartHeight + chartPadding, startX, startY);
+                    float yScaleFactor = 100f / privateMaxValue;
+                    float xStep = chartWidth / (float)(pointCount - 1);
 
-                    for (int i = 0; i < privateDataPoints.Length - 1; i++)
+                    using (GraphicsPath linePath = new GraphicsPath())
                     {
-                        float x1 = chartPadding + (i * chartWidth / (privateDataPoints.Length - 1));
-                        float y1 = chartPadding + chartHeight - (privateDataPoints[i] * yScaleFactor / 100 * chartHeight);
-                        float x2 = chartPadding + ((i + 1) * chartWidth / (privateDataPoints.Length - 1));
-                        float y2 = chartPadding + chartHeight - (privateDataPoints[i + 1] * yScaleFactor / 100 * chartHeight);
+                        float startX = chartPadding;
+                        float startY = chartPadding + chartHeight - (privateDataPoints[0] * yScaleFactor / 100f * chartHeight);
 
-                        if (privateUseBezier)
+                        linePath.StartFigure();
+                        linePath.AddLine(startX, chartHeight + chartPadding, startX, startY);
+
+                        for (int i = 0; i < pointCount - 1; i++)
                         {
-                            float cp1X = x1 + (x2 - x1) / 3;
-                            float cp1Y = y1;
-                            float cp2X = x2 - (x2 - x1) / 3;
-                            float cp2Y = y2;
+                            float x1 = chartPadding + (i * xStep);
+                            float y1 = chartPadding + chartHeight - (privateDataPoints[i] * yScaleFactor / 100f * chartHeight);
+                            float x2 = chartPadding + ((i + 1) * xStep);
+                            float y2 = chartPadding + chartHeight - (privateDataPoints[i + 1] * yScaleFactor / 100f * chartHeight);
 
-                            g.DrawBezier(linePen, x1, y1, cp1X, cp1Y, cp2X, cp2Y, x2, y2);
-                            linePath.AddBezier(x1, y1, cp1X, cp1Y, cp2X, cp2Y, x2, y2);
+                            if (privateUseBezier)
+                            {
+                                float cp1X = x1 + (x2 - x1) / 3f;
+                                float cp1Y = y1;
+                                float cp2X = x2 - (x2 - x1) / 3f;
+                                float cp2Y = y2;
+
+                                g.DrawBezier(linePen, x1, y1, cp1X, cp1Y, cp2X, cp2Y, x2, y2);
+                                linePath.AddBezier(x1, y1, cp1X, cp1Y, cp2X, cp2Y, x2, y2);
+                            }
+                            else
+                            {
+                                g.DrawLine(linePen, x1, y1, x2, y2);
+                                linePath.AddLine(x1, y1, x2, y2);
+                            }
                         }
-                        else
-                        {
-                            g.DrawLine(linePen, x1, y1, x2, y2);
-                            linePath.AddLine(x1, y1, x2, y2);
-                        }
-                    }
 
-                    float endX = chartPadding + chartWidth;
-                    float endY = chartPadding + chartHeight - (privateDataPoints[privateDataPoints.Length - 1] * yScaleFactor / 100 * chartHeight);
-                    linePath.AddLine(endX, endY, endX, chartHeight + chartPadding);
-                    linePath.CloseFigure();
+                        float endX = chartPadding + chartWidth;
+                        float endY = chartPadding + chartHeight - (privateDataPoints[pointCount - 1] * yScaleFactor / 100f * chartHeight);
+                        linePath.AddLine(endX, endY, endX, chartHeight + chartPadding);
+                        linePath.CloseFigure();
 
-                    if (GradientBackground)
-                    {
-                        if (ChartLineColor.A == 255)
+                        if (GradientBackground)
                         {
-                            using (LinearGradientBrush gradientBrush = new LinearGradientBrush(new Point(0, 0), new Point(0, Height), Color.FromArgb(64, ChartLineColor), Color.Transparent))
+                            Color startColor = ChartLineColor.A == 255
+                                ? Color.FromArgb(64, ChartLineColor)
+                                : Color.FromArgb((64 + ChartLineColor.A) / 2, ChartLineColor);
+
+                            using (LinearGradientBrush gradientBrush =
+                                   new LinearGradientBrush(new Point(0, 0), new Point(0, Height), startColor, Color.Transparent))
                             {
                                 g.FillPath(gradientBrush, linePath);
                             }
                         }
                         else
                         {
-                            int blend = (64 + ChartLineColor.A) / 2;
-                            using (LinearGradientBrush gradientBrush = new LinearGradientBrush(new Point(0, 0), new Point(0, Height), Color.FromArgb(blend, ChartLineColor), Color.Transparent))
+                            using (SolidBrush solidBrush = new SolidBrush(Color.FromArgb(32, ChartLineColor)))
                             {
-                                g.FillPath(gradientBrush, linePath);
+                                g.FillPath(solidBrush, linePath);
                             }
                         }
-                    }
-                    else
-                    {
-                        using (SolidBrush solidBrush = new SolidBrush(Color.FromArgb(32, ChartLineColor)))
-                        {
-                            g.FillPath(solidBrush, linePath);
-                        }
-                    }
 
-                    using (SolidBrush pointBrush = new SolidBrush(PointColor))
-                    {
-                        foreach (var point in privateDataPoints)
+                        using (SolidBrush pointBrush = new SolidBrush(PointColor))
                         {
-                            float x = chartPadding + (Array.IndexOf(privateDataPoints, point) * chartWidth / (privateDataPoints.Length - 1));
-                            float y = chartPadding + chartHeight - (point * yScaleFactor / 100 * chartHeight);
-                            g.FillEllipse(pointBrush, x - 4, y - 4, 8, 8);
+                            for (int i = 0; i < pointCount; i++)
+                            {
+                                float x = chartPadding + (i * xStep);
+                                float y = chartPadding + chartHeight - (privateDataPoints[i] * yScaleFactor / 100f * chartHeight);
+                                g.FillEllipse(pointBrush, x - 4, y - 4, 8, 8);
+                            }
                         }
-                    }
 
-                    if (showPopup)
-                    {
-                        SizeF textSize = g.MeasureString(popupText, Font);
-                        RectangleF popupRect = new RectangleF(popupLocation.X - textSize.Width / 2, popupLocation.Y - textSize.Height - 10, textSize.Width, textSize.Height);
-                        using (GraphicsPath popupPath = GeneralHelper.RoundRect(popupRect, (int)(popupRect.Height / 4)))
+                        if (showPopup)
                         {
+                            SizeF textSize = g.MeasureString(popupText, Font);
+                            RectangleF popupRect = new RectangleF(
+                                popupLocation.X - textSize.Width / 2f,
+                                popupLocation.Y - textSize.Height - 10f,
+                                textSize.Width,
+                                textSize.Height);
+
+                            using (GraphicsPath popupPath = GeneralHelper.RoundRect(popupRect, (int)(popupRect.Height / 4f)))
                             using (SolidBrush popupBrush = new SolidBrush(PopupBackground))
+                            using (SolidBrush textBrush = new SolidBrush(PopupText))
                             {
                                 g.FillPath(popupBrush, popupPath);
+                                g.DrawString(popupText, Font, textBrush, popupRect.X + 1.5f, popupRect.Y + 1f);
                             }
-                            g.DrawString(popupText, Font, new SolidBrush(PopupText), popupRect.X + 1.5f, popupRect.Y + 1);
                         }
                     }
                 }
             }
 
-            axisPen.Dispose();
-            dashedPen.Dispose();
-            linePen.Dispose();
-
             DrawLabels(g, chartPadding, chartWidth, chartHeight);
-
             base.OnPaint(e);
         }
 
@@ -534,49 +531,57 @@ namespace CuoreUI.Controls.Charts
 
         private void OnMouseMove(object sender, MouseEventArgs e)
         {
-            int chartWidth = this.Width - chartPadding * 2;
-            int chartHeight = this.Height - chartPadding * 2;
-            float yScaleFactor = 100f / privateMaxValue;
+            var data = privateDataPoints;
+            int count = data?.Length ?? 0;
 
-            bool pointFound = false;
-
-            for (int i = 0; i < privateDataPoints.Length; i++)
+            if (count == 0 || privateMaxValue <= 0)
             {
-                float x = chartPadding + (i * chartWidth / (privateDataPoints.Length - 1));
-                float y = chartPadding + chartHeight - (privateDataPoints[i] * yScaleFactor / 100 * chartHeight);
-
-                if (Math.Abs(e.X - x) < 10 && Math.Abs(e.Y - y) < 10)
+                if (showPopup)
                 {
-                    showPopup = true;
+                    showPopup = false;
+                    InvalidatePopupRegion();
+                }
+                return;
+            }
 
-                    if (!popupLocation.Equals(new PointF(x, y)))
+            int chartWidth = ClientSize.Width - chartPadding * 2;
+            int chartHeight = ClientSize.Height - chartPadding * 2;
+            int lastIndex = count - 1;
+            float yScale = chartHeight / privateMaxValue;
+
+            for (int i = 0; i < count; i++)
+            {
+                float x = chartPadding + (lastIndex == 0 ? 0f : (i * (float)chartWidth / lastIndex));
+                float y = chartPadding + chartHeight - (data[i] * yScale);
+
+                if (Math.Abs(e.X - x) < 10f && Math.Abs(e.Y - y) < 10f)
+                {
+                    var newLocation = new PointF(x, y);
+                    string newText = usePercent ? $"{data[i]}%" : data[i].ToString();
+
+                    if (!showPopup || !popupLocation.Equals(newLocation) || popupText != newText)
                     {
-                        popupLocation = new PointF(x, y);
-                        popupText = $"{privateDataPoints[i]}";
-
-                        if (usePercent)
-                        {
-                            popupText += "%";
-                        }
-
+                        popupLocation = newLocation;
+                        popupText = newText;
+                        showPopup = true;
                         InvalidatePopupRegion();
                     }
+                    else
+                    {
+                        showPopup = true;
+                    }
 
-                    pointFound = true;
                     return;
                 }
-                else
-                {
-                    InvalidatePopupRegion();
-                    showPopup = false;
-                }
             }
 
-            if (!pointFound && showPopup)
+            if (showPopup)
             {
                 showPopup = false;
+                InvalidatePopupRegion();
             }
         }
+
         private void InvalidatePopupRegion()
         {
             SizeF textSize = CreateGraphics().MeasureString(popupText, Font);

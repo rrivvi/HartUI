@@ -253,16 +253,18 @@ namespace CuoreUI.Controls
         new float[] {0, 0, 0, 0, 1}
                     });
 
-                    ImageAttributes imageAttributes = new ImageAttributes();
-                    imageAttributes.SetColorMatrix(colorMatrix);
+                    using (ImageAttributes imageAttributes = new ImageAttributes())
+                    {
+                        imageAttributes.SetColorMatrix(colorMatrix);
 
-                    e.Graphics.DrawImage(
-                        privateImage,
-                        imageRectangle,
-                        0, 0, privateImage.Width, privateImage.Height,
-                        GraphicsUnit.Pixel,
-                        imageAttributes
-                    );
+                        e.Graphics.DrawImage(
+                            privateImage,
+                            imageRectangle,
+                            0, 0, privateImage.Width, privateImage.Height,
+                            GraphicsUnit.Pixel,
+                            imageAttributes
+                        );
+                    }
 
                     int imageRectHalfHeight = imageRectangle.Height / 2;
 
