@@ -189,15 +189,6 @@ namespace CuoreUI.Controls
             set { privateOutlineThickness = value; Invalidate(); }
         }
 
-        private bool privateShowSymbols;
-
-        [Category("CuoreUI")]
-        public bool ShowSymbols
-        {
-            get => privateShowSymbols;
-            set { privateShowSymbols = value; Invalidate(); }
-        }
-
         private Size privateThumbShrinkSize;
 
         [Category("CuoreUI")]
