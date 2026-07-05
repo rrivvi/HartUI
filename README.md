@@ -3,7 +3,7 @@
 ### Credits
 > ![Microsoft logo](https://i.imgur.com/Wbos3r0.png) [Fluent Icons](https://github.com/microsoft/fluentui-system-icons) —  ( [![License: MIT License](https://img.shields.io/badge/MIT-License-006aff)](https://mit-license.org/) @ https://mit-license.org )
 
-> ![CuoreUI logo](https://i.imgur.com/5CIQsYB.png) [CuoreUI](https://github.com/microsoft/fluentui-system-icons) —  ( [![License: MIT License](https://img.shields.io/badge/Unlicense-License-ff6aff)](https://mit-license.org/) @ https://unlicense.org )
+> ![CuoreUI logo](https://i.imgur.com/5CIQsYB.png) [CuoreUI](https://github.com/owtysm2/CuoreUI) —  ( [![License: MIT License](https://img.shields.io/badge/Unlicense-License-ff6aff)](https://unlicense.org) @ https://unlicense.org )
 
 ---
 
