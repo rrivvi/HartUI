@@ -276,15 +276,7 @@ namespace CuoreUI.Controls
                 GenerateHueBitmap();
             }
 
-            try
-            {
-                e.Graphics.DrawImage(privateHueBitmap, x, y, size, size);
-            }
-            catch
-            {
-                // most likely hue ring bitmap is locked and it shouldn't be touched right now
-                return;
-            }
+            e.Graphics.DrawImage(privateHueBitmap, x, y, size, size);
 
             int outerRadius = size / 2 - 1;
             int innerRadius = outerRadius - WheelThickness;
@@ -433,6 +425,7 @@ namespace CuoreUI.Controls
                     if (oldHue != newHue)
                     {
                         privateHue = newHue;
+                        privateHueBitmap?.Dispose();
                         privateHueBitmap = null;
                     }
 
@@ -451,7 +444,7 @@ namespace CuoreUI.Controls
                     UpdateClickedRectangleFromColor();
                 }
 
-                ContentChanged?.Invoke(null, EventArgs.Empty);
+                ContentChanged?.Invoke(this, EventArgs.Empty);
                 Invalidate();
             }
         }
@@ -553,7 +546,7 @@ namespace CuoreUI.Controls
                     // Content calculates new hue values with GetHue,
                     // but we don't want to change the hue while the user is changing the saturation and value
                     privateContent = ColorFromHSV(privateHue, privateSaturation, privateValue, currentAlpha);
-                    ContentChanged?.Invoke(null, EventArgs.Empty);
+                    ContentChanged?.Invoke(this, EventArgs.Empty);
                     Invalidate();
                 }
             }

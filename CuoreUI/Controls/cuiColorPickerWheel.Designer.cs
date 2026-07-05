@@ -17,6 +17,7 @@
             {
                 components.Dispose();
                 privateHueBitmap?.Dispose();
+                privateTriangleBitmap?.Dispose();
             }
             base.Dispose(disposing);
         }

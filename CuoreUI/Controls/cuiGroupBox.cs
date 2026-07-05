@@ -92,27 +92,22 @@ namespace CuoreUI.Controls
             g.SmoothingMode = SmoothingMode.AntiAlias;
             g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
 
-            // l t r b
+            //                   left,           top,                            right,          bottom
             Padding = new Padding(Rounding.Left, Rounding.Top + Font.Height - 2, Rounding.Right, Rounding.Bottom);
-
-            Pen borderPen = new Pen(privateBorderColor);
-            SolidBrush textBrush = new SolidBrush(ForeColor);
-
-            // Draw the border rectangle
             Rectangle modifiedCR = new Rectangle(0, Font.Height / 2, Width - 1, Height - Font.Height / 2 - 1);
+
+            using (Pen borderPen = new Pen(privateBorderColor))
+            using (SolidBrush textBrush = new SolidBrush(ForeColor))
             using (GraphicsPath roundedPath = GeneralHelper.RoundRect(modifiedCR, Rounding))
+            using (SolidBrush backgroundBrush = new SolidBrush(BackColor))
             {
                 g.DrawPath(borderPen, roundedPath);
+
+                Size textSize = TextRenderer.MeasureText(Content, Font);
+                Rectangle textRect = new Rectangle(8, 0, textSize.Width + Font.Height, textSize.Height);
+                g.FillRectangle(backgroundBrush, textRect);
+                g.DrawString(Content, Font, textBrush, textRect, new StringFormat() { Alignment = StringAlignment.Center });
             }
-
-            // Draw the text at the top-left of the box
-            Size textSize = TextRenderer.MeasureText(Content, Font);
-            Rectangle textRect = new Rectangle(8, 0, textSize.Width + Font.Height, textSize.Height);
-            g.FillRectangle(new SolidBrush(BackColor), textRect); // Clear background behind text
-            g.DrawString(Content, Font, textBrush, textRect, new StringFormat() { Alignment = StringAlignment.Center });
-
-            borderPen.Dispose();
-            textBrush.Dispose();
 
             base.OnPaint(e);
         }
