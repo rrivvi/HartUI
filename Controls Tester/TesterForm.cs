@@ -28,15 +28,15 @@ namespace ControlsTester
         {
             string exeDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
-            // "\CuoreUI\"
+            // "\HartUI\"
             string cuoreSourceFolder = Directory.GetParent(exeDir).Parent.Parent.FullName;
 
-            // "\CuoreUI\CuoreUI/bin/Release/net472/CuoreUI.dll"
-            string cuoreBinaryPath = Path.Combine(cuoreSourceFolder, "CuoreUI", "bin", "Release", "net472", "CuoreUI.dll");
+            // "\HartUI\HartUI/bin/Release/net472/HartUI.dll"
+            string cuoreBinaryPath = Path.Combine(cuoreSourceFolder, "HartUI", "bin", "Release", "net472", "HartUI.dll");
 
             if (!File.Exists(cuoreBinaryPath))
             {
-                MessageBox.Show($"Couldn't find ../../CuoreUI/bin/Release/net472/CuoreUI.dll!\nChecked path: \"{cuoreBinaryPath}\"");
+                MessageBox.Show($"Couldn't find ../../HartUI/bin/Release/net472/HartUI.dll!\nChecked path: \"{cuoreBinaryPath}\"");
                 Environment.Exit(0);
                 return;
             }
@@ -52,7 +52,7 @@ namespace ControlsTester
             {
                 if (type.IsCuore())
                 {
-                    if (type.FullName.StartsWith("CuoreUI.Controls.") && type.IsSubclassOf(typeof(Control)) && !type.IsSubclassOf(typeof(Form)))
+                    if (type.FullName.StartsWith("HartUI.Controls.") && type.IsSubclassOf(typeof(Control)) && !type.IsSubclassOf(typeof(Form)))
                     {
                         label2.Text = $"Loading {type.Name} ({type.Namespace})";
                         controlsNames.Add(type.Name);
@@ -61,7 +61,7 @@ namespace ControlsTester
                         availableControls.Add(control);
                         controlsCount++;
                     }
-                    else if (type.FullName.StartsWith("CuoreUI.Components."))
+                    else if (type.FullName.StartsWith("HartUI.Components."))
                     {
                         label3.Text = $"Loading {type.Name} ({type.Namespace})";
                         componentsNames.Add(type.Name);

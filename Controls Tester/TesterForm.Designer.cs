@@ -145,7 +145,7 @@
             this.Controls.Add(this.label2);
             this.Controls.Add(this.panel2);
             this.Name = "TesterForm";
-            this.Text = "CuoreUI Basic Control Tester";
+            this.Text = "HartUI Basic Control Tester";
             this.panel2.ResumeLayout(false);
             this.panel2.PerformLayout();
             this.ResumeLayout(false);
