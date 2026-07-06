@@ -25,27 +25,16 @@ namespace CuoreUI.Controls
         [Category("CuoreUI")]
         public string Content
         {
-            get
-            {
-                if (privateContent.Length > 1)
-                {
-                    return Regex.Escape(privateContent);
-                }
-
-                return privateContent;
-            }
+            get => privateContent;
             set
             {
-                try
-                {
+                // allow newlines in text content (CuoreUI originally used regex unescape for this)
+                privateContent = (value ?? string.Empty)
+                    .Replace("\\r\\n", "\r\n")
+                    .Replace("\\n", "\n")
+                    .Replace("\\r", "\r")
+                    .Replace("\\t", "\t");
 
-                    privateContent = Regex.Unescape(value);
-                }
-                catch (ArgumentException)
-                {
-                    // there was probably a backslash which wasnt escaped?
-                    privateContent = value;
-                }
                 Invalidate();
             }
         }

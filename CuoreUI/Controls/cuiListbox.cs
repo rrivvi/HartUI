@@ -266,15 +266,12 @@ namespace CuoreUI.Controls
             cr.Height -= 1;
 
             using (Brush bgBrush = new SolidBrush(BackColor))
-            {
-                g.FillRectangle(bgBrush, backgroundRect);
-            }
-
-
             using (GraphicsPath path2 = GeneralHelper.RoundRect(cr, Rounding))
             using (Brush itemBrush = new SolidBrush(BackgroundColor))
             using (Pen bgPen = new Pen(OutlineColor, OutlineThickness))
             {
+                g.FillRectangle(bgBrush, backgroundRect);
+
                 e.Graphics.FillPath(itemBrush, path2);
                 e.Graphics.PixelOffsetMode = PixelOffsetMode.Default;
                 e.Graphics.DrawPath(bgPen, path2);
@@ -291,6 +288,9 @@ namespace CuoreUI.Controls
                 using (Brush normalBrush = new SolidBrush(ItemBackgroundColor))
                 using (Brush normalTextBrush = new SolidBrush(ForegroundColor))
                 {
+                    // These are references and should not be disposed
+                    Brush itemBackgroundBrush, itemForegroundBrush;
+
                     int first = TopIndex;
                     int visibleCount = (ClientSize.Height / ItemHeight) + 2;
                     int last = Math.Min(Items.Count, first + visibleCount);
@@ -306,42 +306,41 @@ namespace CuoreUI.Controls
                         int yCenterString = itemRect.Y + (ItemHeight - Font.Height) / 2;
                         string itemText = Items[i].ToString();
 
-                        Brush bg, fg;
-
                         if (SelectedIndex == i)
                         {
-                            bg = selectedBrush;
-                            fg = selectedTextBrush;
+                            itemBackgroundBrush = selectedBrush;
+                            itemForegroundBrush = selectedTextBrush;
                         }
                         else if (privateHoveredIndex == i)
                         {
-                            bg = hoverBrush;
-                            fg = hoverTextBrush;
+                            itemBackgroundBrush = hoverBrush;
+                            itemForegroundBrush = hoverTextBrush;
                         }
                         else
                         {
-                            bg = normalBrush;
-                            fg = normalTextBrush;
+                            itemBackgroundBrush = normalBrush;
+                            itemForegroundBrush = normalTextBrush;
                         }
 
                         if (ItemRounding > 0)
                         {
-                            using (var path = GeneralHelper.RoundRect(itemRect, ItemRounding))
-                                g.FillPath(bg, path);
+                            using (GraphicsPath itemPath = GeneralHelper.RoundRect(itemRect, ItemRounding))
+                            {
+                                g.FillPath(itemBackgroundBrush, itemPath);
+                            }
                         }
                         else
                         {
-                            g.FillRectangle(bg, itemRect);
+                            g.FillRectangle(itemBackgroundBrush, itemRect);
                         }
 
-                        g.DrawString(itemText, Font, fg, itemRect.X + 6, yCenterString);
+                        g.DrawString(itemText, Font, itemForegroundBrush, itemRect.X + 6, yCenterString);
                     }
                 }
 
                 // Reset the clip after drawing
                 g.ResetClip();
             }
-
 
             base.OnPaint(e);
         }

@@ -244,85 +244,81 @@ namespace CuoreUI.Controls
                 for (int i = 0; i < BoxAmount; i++)
                 {
                     Rectangle boxRectangle = new Rectangle(currentPosition, 0, Height - 1, Height - 1);
-                    GraphicsPath gp = GeneralHelper.RoundRect(boxRectangle, Rounding);
 
-                    if (i == focusedIndex && Focused)
+                    using (GraphicsPath gp = GeneralHelper.RoundRect(boxRectangle, Rounding))
                     {
-                        using (SolidBrush focusedBrush = new SolidBrush(FocusedColor))
-                        using (Pen focusedPen = new Pen(FocusedBorderColor))
-                        using (SolidBrush focusedText = new SolidBrush(FocusedTextColor))
+                        if (i == focusedIndex && Focused)
                         {
-                            e.Graphics.FillPath(focusedBrush, gp);
+                            using (SolidBrush focusedBrush = new SolidBrush(FocusedColor))
+                            using (Pen focusedPen = new Pen(FocusedBorderColor))
+                            using (SolidBrush focusedText = new SolidBrush(FocusedTextColor))
+                            {
+                                e.Graphics.FillPath(focusedBrush, gp);
+
+                                if (Content.Length > i)
+                                {
+                                    e.Graphics.DrawString(Content[i].ToString(), Font, focusedText, boxRectangle, sf);
+                                }
+
+                                if (UnderlinedStyle)
+                                {
+                                    RectangleF bounds = gp.GetBounds();
+                                    RectangleF bottomHalfBounds = new RectangleF(bounds.X + 1, bounds.Y + bounds.Height / 2, bounds.Width - 1.5f, bounds.Height / 2 + 1);
+
+                                    using (Region bottomHalfRegion = new Region(bottomHalfBounds))
+                                    {
+                                        // Sets the clipping region for the path
+                                        e.Graphics.SetClip(bottomHalfRegion, CombineMode.Intersect);
+
+                                        // Draws the the bottom half
+                                        e.Graphics.DrawPath(focusedPen, gp);
+
+                                        // Reset the clipping region for the next box
+                                        e.Graphics.ResetClip();
+                                    }
+                                }
+                                else
+                                {
+                                    e.Graphics.PixelOffsetMode = PixelOffsetMode.Default;
+                                    e.Graphics.DrawPath(focusedPen, gp);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            e.Graphics.FillPath(unfocusedBrush, gp);
 
                             if (Content.Length > i)
                             {
-                                e.Graphics.DrawString(Content[i].ToString(), Font, focusedText, boxRectangle, sf);
+                                e.Graphics.DrawString(Content[i].ToString(), Font, unfocusedText, boxRectangle, sf);
                             }
 
                             if (UnderlinedStyle)
                             {
                                 RectangleF bounds = gp.GetBounds();
+                                RectangleF bottomHalfBounds = new RectangleF(bounds.X + 1, bounds.Y + bounds.Height / 2, bounds.Width - 1, bounds.Height / 2 + 1);
 
-                                // Step 2: Define the clipping region for the bottom half
-                                RectangleF bottomHalfBounds = new RectangleF(bounds.X + 1, bounds.Y + bounds.Height / 2, bounds.Width - 1.5f, bounds.Height / 2 + 1);
-
-                                // Step 3: Create a region for the bottom half
                                 using (Region bottomHalfRegion = new Region(bottomHalfBounds))
                                 {
-                                    // Step 4: Set the clipping region for the path
+                                    // Sets the clipping region for the path
                                     e.Graphics.SetClip(bottomHalfRegion, CombineMode.Intersect);
 
-                                    // Step 5: Draw the path (only the bottom half)
-                                    e.Graphics.DrawPath(focusedPen, gp);
+                                    e.Graphics.PixelOffsetMode = PixelOffsetMode.Default;
 
-                                    // Reset the clipping region (optional)
+                                    // Draws the the bottom half
+                                    e.Graphics.DrawPath(unfocusedPen, gp);
+
+                                    // Reset the clipping region for the next box
                                     e.Graphics.ResetClip();
                                 }
                             }
                             else
                             {
-                                e.Graphics.PixelOffsetMode = PixelOffsetMode.Default;
-                                e.Graphics.DrawPath(focusedPen, gp);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        e.Graphics.FillPath(unfocusedBrush, gp);
-
-                        if (Content.Length > i)
-                        {
-                            e.Graphics.DrawString(Content[i].ToString(), Font, unfocusedText, boxRectangle, sf);
-                        }
-
-                        if (UnderlinedStyle)
-                        {
-                            RectangleF bounds = gp.GetBounds();
-
-                            // Step 2: Define the clipping region for the bottom half
-                            RectangleF bottomHalfBounds = new RectangleF(bounds.X + 1, bounds.Y + bounds.Height / 2, bounds.Width - 1, bounds.Height / 2 + 1);
-
-                            // Step 3: Create a region for the bottom half
-                            using (Region bottomHalfRegion = new Region(bottomHalfBounds))
-                            {
-                                // Step 4: Set the clipping region for the path
-                                e.Graphics.SetClip(bottomHalfRegion, CombineMode.Intersect);
-
-                                e.Graphics.PixelOffsetMode = PixelOffsetMode.Default;
-                                // Step 5: Draw the path (only the bottom half)
                                 e.Graphics.DrawPath(unfocusedPen, gp);
-
-                                // Reset the clipping region (optional)
-                                e.Graphics.ResetClip();
                             }
-                        }
-                        else
-                        {
-                            e.Graphics.DrawPath(unfocusedPen, gp);
                         }
                     }
 
-                    gp.Dispose();
                     currentPosition += boxSizeWithSpacingOffset;
                 }
             }
