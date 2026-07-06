@@ -38,7 +38,8 @@ namespace CuoreUI.Controls
 
             animationTimer = new Timer
             {
-                Interval = LazyTimeDelta // uses your helper
+                // LazyTimeDelta comes from CuoreUI.Helpers.DrawingHelper
+                Interval = LazyTimeDelta
             };
             animationTimer.Tick += AnimationTick;
         }

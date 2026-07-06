@@ -9,6 +9,7 @@
             if (disposing && (components != null))
             {
                 components.Dispose();
+                animationTimer?.Dispose();
             }
             base.Dispose(disposing);
         }

@@ -120,25 +120,32 @@ namespace CuoreUI.Controls
                 starRect.Inflate(-StarBorderSize, -StarBorderSize);
                 starRect.Offset(StarBorderSize / 2, StarBorderSize / 2);
 
-                GraphicsPath starPath = GeneralHelper.Star(starLeft + starWidth / 2, Height / 2, starWidth / 2, starWidth / 3.8f, 5);
-
-                using (SolidBrush starBrush = new SolidBrush(StarColor))
-                    if ((i + 1) * 2 <= Rating)
-                    {
-                        e.Graphics.FillPath(starBrush, starPath);
-                    }
-                    else if (i * 2 + 1 == Rating)
-                    {
-                        e.Graphics.FillPath(starBrush, starPath);
-
-                        starRect.Inflate(StarBorderSize, StarBorderSize);
-                        starRect.Offset(-(StarBorderSize / 2), -(StarBorderSize / 2));
-                        e.Graphics.FillRectangle(new SolidBrush(BackColor), starRect);
-                    }
-
-                using (Pen starBorderPen = new Pen(StarColor, StarBorderSize / 2f))
+                using (GraphicsPath starPath = GeneralHelper.Star(starLeft + starWidth / 2, Height / 2, starWidth / 2, starWidth / 3.8f, 5))
                 {
-                    e.Graphics.DrawPath(starBorderPen, starPath);
+                    using (SolidBrush starBrush = new SolidBrush(StarColor))
+                    {
+                        if ((i + 1) * 2 <= Rating)
+                        {
+                            e.Graphics.FillPath(starBrush, starPath);
+                        }
+                        else if (i * 2 + 1 == Rating)
+                        {
+                            e.Graphics.FillPath(starBrush, starPath);
+
+                            starRect.Inflate(StarBorderSize, StarBorderSize);
+                            starRect.Offset(-(StarBorderSize / 2), -(StarBorderSize / 2));
+
+                            using (SolidBrush backgroundBrush = new SolidBrush(BackColor))
+                            {
+                                e.Graphics.FillRectangle(backgroundBrush, starRect);
+                            }
+                        }
+                    }
+
+                    using (Pen starBorderPen = new Pen(StarColor, StarBorderSize / 2f))
+                    {
+                        e.Graphics.DrawPath(starBorderPen, starPath);
+                    }
                 }
             }
 
