@@ -78,10 +78,14 @@ namespace CuoreUI.Controls.Shapes
 
             modifiedCR.Inflate(-OutlineThickness, -OutlineThickness);
 
-            e.Graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
-            e.Graphics.FillEllipse(new SolidBrush(PanelColor), modifiedCR);
-            e.Graphics.PixelOffsetMode = PixelOffsetMode.Default;
-            e.Graphics.DrawEllipse(new Pen(OutlineColor, OutlineThickness), modifiedCR);
+            using (SolidBrush panelBrush = new SolidBrush(PanelColor))
+            using (Pen outlinePen = new Pen(OutlineColor, OutlineThickness))
+            {
+                e.Graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                e.Graphics.FillEllipse(panelBrush, modifiedCR);
+                e.Graphics.PixelOffsetMode = PixelOffsetMode.Default;
+                e.Graphics.DrawEllipse(outlinePen, modifiedCR);
+            }
         }
     }
 }

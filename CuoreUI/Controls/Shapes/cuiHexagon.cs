@@ -96,11 +96,13 @@ namespace CuoreUI.Controls.Shapes
             modifiedCR.Inflate(-OutlineThickness, -OutlineThickness);
 
             using (GraphicsPath hexagonPath = GeneralHelper.RoundHexagon(modifiedCR, Rounding))
+            using (SolidBrush panelBrush = new SolidBrush(PanelColor))
+            using (Pen outlinePen = new Pen(OutlineColor, OutlineThickness))
             {
                 e.Graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
-                e.Graphics.FillPath(new SolidBrush(PanelColor), hexagonPath);
+                e.Graphics.FillPath(panelBrush, hexagonPath);
                 e.Graphics.PixelOffsetMode = PixelOffsetMode.Default;
-                e.Graphics.DrawPath(new Pen(OutlineColor, OutlineThickness), hexagonPath);
+                e.Graphics.DrawPath(outlinePen, hexagonPath);
             }
 
             base.OnPaint(e);
