@@ -17,8 +17,8 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="CuoreUI\bin\Release\net472\CuoreUI.dll" target="lib\net472" />
-    <file src="CuoreUI\bin\Release\net8.0-windows\CuoreUI.dll" target="lib\net8.0" />
+    <file src="HartUI\bin\Release\net472\HartUI.dll" target="lib\net472" />
+    <file src="HartUI\bin\Release\net8.0-windows\HartUI.dll" target="lib\net8.0" />
     <file src="icon.png" target="icon.png" />
     <file src="README.md" target="" />
   </files>
