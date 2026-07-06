@@ -222,112 +222,113 @@ namespace CuoreUI.Controls
             Point currentItemPosition = new Point(ActualItemHeight, HalfPenThickness);
             Point currentTextRectangle = new Point(0, ActualItemHeight + PenThicknessCompensation + 1);
 
-            StringFormat sf = new StringFormat { Alignment = StringAlignment.Center };
-            Brush trackBrush = new SolidBrush(CompletedColor);
-            Brush todoBrush = new SolidBrush(TrackColor);
-
-            GraphicsPath RoundedItemPath = null;
-
-            int tempRounding;
-            if (AutoRounding)
+            using (StringFormat sf = new StringFormat { Alignment = StringAlignment.Center })
+            using (Brush trackBrush = new SolidBrush(CompletedColor))
+            using (Brush todoBrush = new SolidBrush(TrackColor))
             {
-                tempRounding = ActualItemHeight / 2;
-            }
-            else
-            {
-                tempRounding = Math.Min(ActualItemHeight / 2, privateRounding);
-            }
+                GraphicsPath RoundedItemPath = null;
 
-            // draw tasks
-            for (int i = 0; i < itemCount; i++)
-            {
-                currentItemPosition.X = ActualItemHeight + (i * spacing) - (i * WantedItemHeight / Tasks.Length) - PenThicknessCompensation;
-                currentTextRectangle.X = currentItemPosition.X + ((ActualItemHeight + 1) / 2);
-
-                // current step
-                if (i == TasksProgress - 1)
+                int tempRounding;
+                if (AutoRounding)
                 {
-                    RoundedItemPath = GeneralHelper.RoundRect(new Rectangle(
-                            currentItemPosition.X + (HalfPenThickness / 2) + 1,
-                            PenThicknessCompensation + 1,
-                            ActualItemHeight - HalfPenThickness - 2,
-                            ActualItemHeight - HalfPenThickness - 2), tempRounding - PenThicknessCompensation / 2 - 1);
-
-                    using (Pen p = new Pen(CompletedColor, (LineThickness / 2) - 1))
-                    {
-                        e.Graphics.DrawPath(p, RoundedItemPath);
-                    }
-
-                    using (SolidBrush textBrush = new SolidBrush(CurrentTaskForeColor))
-                    {
-                        e.Graphics.DrawString(Tasks[i], Font, textBrush, currentTextRectangle, sf);
-                    }
+                    tempRounding = ActualItemHeight / 2;
                 }
-                // completed steps
-                else if (i < TasksProgress)
+                else
                 {
-                    // save rect for later in case drawing symbols
-                    Rectangle tempRect = new Rectangle(currentItemPosition.X, PenThicknessCompensation, ActualItemHeight, ActualItemHeight);
+                    tempRounding = Math.Min(ActualItemHeight / 2, privateRounding);
+                }
 
-                    RoundedItemPath = GeneralHelper.RoundRect(tempRect, tempRounding);
-                    e.Graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
-                    e.Graphics.FillPath(trackBrush, RoundedItemPath);
+                // draw tasks
+                for (int i = 0; i < itemCount; i++)
+                {
+                    currentItemPosition.X = ActualItemHeight + (i * spacing) - (i * WantedItemHeight / Tasks.Length) - PenThicknessCompensation;
+                    currentTextRectangle.X = currentItemPosition.X + ((ActualItemHeight + 1) / 2);
 
-                    // checkmark
-                    if (ShowSymbols)
+                    // current step
+                    if (i == TasksProgress - 1)
                     {
-                        tempRect.Inflate(0, -1);
-                        tempRect.Inflate(-(ActualItemHeight / 10), -(ActualItemHeight / 10));
-                        using (GraphicsPath checkmarkGP = GeneralHelper.Checkmark(tempRect))
-                        using (Pen p = new Pen(BackColor, ActualItemHeight / 8) { EndCap = LineCap.Round, StartCap = LineCap.Round })
+                        RoundedItemPath = GeneralHelper.RoundRect(new Rectangle(
+                                currentItemPosition.X + (HalfPenThickness / 2) + 1,
+                                PenThicknessCompensation + 1,
+                                ActualItemHeight - HalfPenThickness - 2,
+                                ActualItemHeight - HalfPenThickness - 2), tempRounding - PenThicknessCompensation / 2 - 1);
+
+                        using (Pen p = new Pen(CompletedColor, (LineThickness / 2) - 1))
                         {
-                            e.Graphics.DrawPath(p, checkmarkGP);
+                            e.Graphics.DrawPath(p, RoundedItemPath);
+                        }
+
+                        using (SolidBrush textBrush = new SolidBrush(CurrentTaskForeColor))
+                        {
+                            e.Graphics.DrawString(Tasks[i], Font, textBrush, currentTextRectangle, sf);
+                        }
+                    }
+                    // completed steps
+                    else if (i < TasksProgress)
+                    {
+                        // save rect for later in case drawing symbols
+                        Rectangle tempRect = new Rectangle(currentItemPosition.X, PenThicknessCompensation, ActualItemHeight, ActualItemHeight);
+
+                        RoundedItemPath = GeneralHelper.RoundRect(tempRect, tempRounding);
+                        e.Graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                        e.Graphics.FillPath(trackBrush, RoundedItemPath);
+
+                        // checkmark
+                        if (ShowSymbols)
+                        {
+                            tempRect.Inflate(0, -1);
+                            tempRect.Inflate(-(ActualItemHeight / 10), -(ActualItemHeight / 10));
+                            using (GraphicsPath checkmarkGP = GeneralHelper.Checkmark(tempRect))
+                            using (Pen p = new Pen(BackColor, ActualItemHeight / 8) { EndCap = LineCap.Round, StartCap = LineCap.Round })
+                            {
+                                e.Graphics.DrawPath(p, checkmarkGP);
+                            }
+                        }
+
+                        using (SolidBrush textBrush = new SolidBrush(TaskForeColor))
+                        {
+                            e.Graphics.DrawString(Tasks[i], Font, textBrush, currentTextRectangle, sf);
+                        }
+                    }
+                    // steps yet to be completed
+                    else
+                    {
+                        RoundedItemPath = GeneralHelper.RoundRect(new Rectangle(
+                            currentItemPosition.X,
+                            PenThicknessCompensation,
+                            ActualItemHeight,
+                            ActualItemHeight), tempRounding);
+
+                        e.Graphics.FillPath(todoBrush, RoundedItemPath);
+
+                        using (SolidBrush textBrush = new SolidBrush(TaskForeColor))
+                        {
+                            e.Graphics.DrawString(Tasks[i], Font, textBrush, currentTextRectangle, sf);
                         }
                     }
 
-                    using (SolidBrush textBrush = new SolidBrush(TaskForeColor))
+                    // lines inbetween
+                    if (i != itemCount - 1)
                     {
-                        e.Graphics.DrawString(Tasks[i], Font, textBrush, currentTextRectangle, sf);
+                        using (Pen p = new Pen(i < TasksProgress - 1 ? CompletedColor : TrackColor, (LineThickness / 2)) { StartCap = LineCap.Round, EndCap = LineCap.Round })
+                        {
+                            Point ConnectPoint = currentItemPosition;
+                            ConnectPoint.Y += ((ActualItemHeight + PenThicknessCompensation + 1) / 2);
+                            ConnectPoint.X += PenThicknessCompensation + ActualItemHeight;
+
+                            Point ConnectPoint2 = ConnectPoint;
+                            ConnectPoint2.X = ConnectPoint.X + spacing - (WantedItemHeight / Tasks.Length) - WantedItemHeight - (PenThicknessCompensation * 2) + 1;
+
+                            ConnectPoint.X += PenThicknessCompensation;
+                            ConnectPoint2.X -= PenThicknessCompensation;
+
+                            e.Graphics.DrawLine(p, ConnectPoint, ConnectPoint2);
+                        }
                     }
                 }
-                // steps yet to be completed
-                else
-                {
-                    RoundedItemPath = GeneralHelper.RoundRect(new Rectangle(
-                        currentItemPosition.X,
-                        PenThicknessCompensation,
-                        ActualItemHeight,
-                        ActualItemHeight), tempRounding);
 
-                    e.Graphics.FillPath(todoBrush, RoundedItemPath);
-
-                    using (SolidBrush textBrush = new SolidBrush(TaskForeColor))
-                    {
-                        e.Graphics.DrawString(Tasks[i], Font, textBrush, currentTextRectangle, sf);
-                    }
-                }
-
-                // lines inbetween
-                if (i != itemCount - 1)
-                {
-                    using (Pen p = new Pen(i < TasksProgress - 1 ? CompletedColor : TrackColor, (LineThickness / 2)) { StartCap = LineCap.Round, EndCap = LineCap.Round })
-                    {
-                        Point ConnectPoint = currentItemPosition;
-                        ConnectPoint.Y += ((ActualItemHeight + PenThicknessCompensation + 1) / 2);
-                        ConnectPoint.X += PenThicknessCompensation + ActualItemHeight;
-
-                        Point ConnectPoint2 = ConnectPoint;
-                        ConnectPoint2.X = ConnectPoint.X + spacing - (WantedItemHeight / Tasks.Length) - WantedItemHeight - (PenThicknessCompensation * 2) + 1;
-
-                        ConnectPoint.X += PenThicknessCompensation;
-                        ConnectPoint2.X -= PenThicknessCompensation;
-
-                        e.Graphics.DrawLine(p, ConnectPoint, ConnectPoint2);
-                    }
-                }
+                RoundedItemPath?.Dispose();
             }
-
-            RoundedItemPath?.Dispose();
 
             base.OnPaint(e);
         }

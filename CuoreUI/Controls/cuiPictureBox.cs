@@ -22,9 +22,6 @@ namespace CuoreUI.Controls
         private Bitmap cachedImage = null;
         private TextureBrush cachedImageBrush = null;
 
-        private Color lastTint = Color.Empty;
-        private int lastRotation = int.MinValue;
-
         private Matrix transformMatrix = new Matrix();
 
         [Category("CuoreUI")]
@@ -154,9 +151,6 @@ namespace CuoreUI.Controls
 
             cachedImageBrush = new TextureBrush(cachedImage, WrapMode.Clamp);
 
-            lastTint = ImageTint;
-            lastRotation = privateRotation;
-
             UpdateTransform();
             Invalidate();
         }
@@ -172,7 +166,9 @@ namespace CuoreUI.Controls
             float scaleY = (float)Height / cachedImage.Height;
 
             transformMatrix.Scale(scaleX, scaleY);
-            transformMatrix.RotateAt(privateRotation, new PointF(Width / 2f, Height / 2f));
+            transformMatrix.RotateAt(privateRotation, new PointF(
+                cachedImage.Width / 2f,
+                cachedImage.Height / 2f));
 
             cachedImageBrush.Transform = transformMatrix;
         }
@@ -199,7 +195,7 @@ namespace CuoreUI.Controls
                 return;
 
             e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-            e.Graphics.InterpolationMode = InterpolationMode.HighQualityBilinear;
+            e.Graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
             e.Graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
 
             Rectangle rect = ClientRectangle;

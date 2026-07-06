@@ -228,6 +228,8 @@ namespace CuoreUI.Controls
             {
                 using (SolidBrush br = new SolidBrush(GripColor))
                 {
+                    // GetGripPath should not be disposed as the method
+                    // controls the life cycle by itself
                     e.Graphics.FillPath(br, GetGripPath());
                 }
             }

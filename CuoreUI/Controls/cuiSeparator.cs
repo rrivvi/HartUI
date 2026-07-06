@@ -72,25 +72,23 @@ namespace CuoreUI.Controls
 
         protected override void OnPaint(PaintEventArgs e)
         {
-            GraphicsPath tempPath = new GraphicsPath();
-            RectangleF lineRect = RectangleF.Empty;
-
-            if (Vertical)
-            {
-                int halfX = Width / 2;
-                lineRect = new RectangleF(halfX, SeparatorMargin, Thickness, Height - (SeparatorMargin * 2));
-            }
-            else
-            {
-                int halfY = Height / 2;
-                lineRect = new RectangleF(SeparatorMargin, halfY, Width - (SeparatorMargin * 2), Thickness);
-                ;
-            }
-
-            tempPath.AddRectangle(lineRect);
-
+            using (GraphicsPath tempPath = new GraphicsPath())
             using (Pen pen = new Pen(ForeColor, Thickness))
             {
+                RectangleF lineRect = RectangleF.Empty;
+
+                if (Vertical)
+                {
+                    int halfX = Width / 2;
+                    lineRect = new RectangleF(halfX, SeparatorMargin, Thickness, Height - (SeparatorMargin * 2));
+                }
+                else
+                {
+                    int halfY = Height / 2;
+                    lineRect = new RectangleF(SeparatorMargin, halfY, Width - (SeparatorMargin * 2), Thickness);
+                }
+
+                tempPath.AddRectangle(lineRect);
                 e.Graphics.DrawPath(pen, tempPath);
             }
             base.OnPaint(e);

@@ -9,6 +9,8 @@
             if (disposing && (components != null))
             {
                 components.Dispose();
+                DisposeCache();
+                transformMatrix?.Dispose();
             }
             base.Dispose(disposing);
         }

@@ -16,6 +16,7 @@
             if (disposing && (components != null))
             {
                 components.Dispose();
+                cachedGripPath?.Dispose();
             }
             base.Dispose(disposing);
         }
