@@ -1,6 +1,6 @@
-![CuoreUI-ng Banner (CuoreUI-ng controls are shown in the window)](https://github.com/user-attachments/assets/ab577277-d4c8-4480-b225-95aa71fbfccc)
+![CuoreUI-ng Banner (CuoreUI-ng controls are shown in the window)](https://i.imgur.com/1bm6zsa.png)
 
-# <img width="32" height="32" alt="cuoreui-ng-32" src="https://github.com/user-attachments/assets/affefbba-b05c-4880-9366-3a70f0f88bc5" /> CuoreUI Next Generation
+# ![cui-ng logo](https://i.imgur.com/cWwEcf1.png) CuoreUI Next Generation
 
 An unofficial but faithful continuation of the now-archived WinForms UI library [`CuoreUI.Winforms`](https://github.com/owtysm2/CuoreUI).
 
