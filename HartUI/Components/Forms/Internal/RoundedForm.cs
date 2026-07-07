@@ -70,7 +70,10 @@ namespace HartUI.Components.Forms
 
         public RoundedForm(Color init_backgroundColor, Color init_borderColor, ref int RoundValue, bool show = true)
         {
-            PerPixelAlphaBlend.SetBitmap(new Bitmap(1, 1), 0, Width, Height, Handle);
+            using (Bitmap initialBitmap = new Bitmap(1, 1))
+            {
+                PerPixelAlphaBlend.SetBitmap(initialBitmap, 0, Width, Height, Handle);
+            }
 
             Visible = show;
             InitializeComponent();
@@ -238,7 +241,10 @@ namespace HartUI.Components.Forms
 
         protected override void OnResize(EventArgs e)
         {
+            Region?.Dispose();
             Region = null;
+
+            base.OnResize(e);
         }
 
         private void RoundedForm_PaddingChanged(object sender, EventArgs e)
@@ -278,6 +284,5 @@ namespace HartUI.Components.Forms
                 WrapMode = WrapMode.Clamp
             };
         }
-
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace HartUI.Components
+﻿using HartUI.Helpers;
+
+namespace HartUI.Components
 {
     partial class cuiFormRounder
     {
@@ -13,10 +15,29 @@
         /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         protected override void Dispose(bool disposing)
         {
-            if (disposing && (components != null))
+            if (disposing)
             {
-                components.Dispose();
+                TargetForm = null;
+
+                if (tenFramesDrawnHandler != null)
+                {
+                    DrawingHelper.TenFramesDrawn -= tenFramesDrawnHandler;
+                    tenFramesDrawnHandler = null;
+                }
+
+                experimentalBitmap?.Dispose();
+                experimentalBitmap = null;
+
+                if (roundedFormObj != null)
+                {
+                    roundedFormObj.Activated -= FakeForm_Activated;
+                    roundedFormObj.Dispose();
+                    roundedFormObj = null;
+                }
+
+                components?.Dispose();
             }
+
             base.Dispose(disposing);
         }
 

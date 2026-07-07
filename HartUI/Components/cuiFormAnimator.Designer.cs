@@ -16,6 +16,10 @@
             if (disposing && (components != null))
             {
                 components.Dispose();
+                if (privateTargetForm != null)
+                {
+                    privateTargetForm.HandleCreated -= Value_HandleCreated;
+                }
             }
             base.Dispose(disposing);
         }

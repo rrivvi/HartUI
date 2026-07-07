@@ -16,6 +16,7 @@
             if (disposing && (components != null))
             {
                 components.Dispose();
+                TargetControl = null;
             }
             base.Dispose(disposing);
         }

@@ -16,6 +16,11 @@
             if (disposing && (components != null))
             {
                 components.Dispose();
+                if (privateTargetForm != null)
+                {
+                    privateTargetForm.HandleCreated -= RefreshExclusionType;
+                    privateTargetForm.Load -= RefreshExclusionType;
+                }
             }
             base.Dispose(disposing);
         }

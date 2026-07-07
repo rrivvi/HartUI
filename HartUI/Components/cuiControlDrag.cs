@@ -62,5 +62,18 @@ namespace HartUI.Components
                 previousMousePosition = currentMousePosition;
             }
         }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                if (targetControl != null)
+                {
+                    targetControl.MouseDown -= MouseDown;
+                    targetControl.MouseMove -= MouseMove;
+                }
+            }
+            base.Dispose(disposing);
+        }
     }
 }

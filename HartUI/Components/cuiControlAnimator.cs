@@ -34,32 +34,45 @@ namespace HartUI.Components
 
         }
 
-        private Control privateTargetControl = null;
+        private Control privateTargetControl;
 
         [Category("HartUI")]
         [Description("The control to animate.")]
         public Control TargetControl
         {
-            get
-            {
-                return privateTargetControl;
-            }
+            get => privateTargetControl;
             set
             {
-                privateTargetControl = value;
-
-                if (value != null)
+                if (ReferenceEquals(privateTargetControl, value))
                 {
-                    if (value is Form && DesignMode)
+                    return;
+                }
+
+                if (privateTargetControl != null)
+                {
+                    privateTargetControl.HandleCreated -= PrivateTargetControl_HandleCreated;
+                    privateTargetControl.Paint -= paintHandler;
+                }
+
+                privateTargetControl = null;
+
+                if (value == null)
+                {
+                    return;
+                }
+
+                if (value is Form)
+                {
+                    if (DesignMode)
                     {
                         MessageBox.Show("Please use 'cuiFormAnimator' to animate Forms!", "HartUI");
-                        privateTargetControl = null;
                     }
-                    else
-                    {
-                        privateTargetControl.HandleCreated += PrivateTargetControl_HandleCreated;
-                    }
+
+                    return;
                 }
+
+                privateTargetControl = value;
+                privateTargetControl.HandleCreated += PrivateTargetControl_HandleCreated;
             }
         }
 

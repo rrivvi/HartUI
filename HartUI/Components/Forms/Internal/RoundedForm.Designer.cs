@@ -13,10 +13,29 @@
         /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         protected override void Dispose(bool disposing)
         {
-            if (disposing && (components != null))
+            if (disposing)
             {
-                components.Dispose();
+                stop = true;
+                PaddingChanged -= RoundedForm_PaddingChanged;
+                TargetForm = null;
+
+                if (components != null)
+                {
+                    components.Dispose();
+                }
+
+                backGraphics?.Dispose();
+                backGraphics = null;
+                backImage?.Dispose();
+                backImage = null;
+                targetFormBt?.Dispose();
+                targetFormBt = null;
+                backgroundImageTextureBrush?.Dispose();
+                backgroundImageTextureBrush = null;
+                privateBackgroundImage?.Dispose();
+                privateBackgroundImage = null;
             }
+
             base.Dispose(disposing);
         }
 

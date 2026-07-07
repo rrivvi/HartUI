@@ -36,6 +36,7 @@ namespace HartUI.Components
                     // to avoid visual artifacts, the region is reset to normal here
                     if (value == null && !privateTargetForm.IsDisposed)
                     {
+                        privateTargetForm.Region?.Dispose();
                         privateTargetForm.Region = null;
                     }
 
@@ -86,6 +87,9 @@ namespace HartUI.Components
                 }
             }
         }
+
+        private EventHandler tenFramesDrawnHandler;
+
 
         private void TargetForm_ResizeEnd(object sender, EventArgs e)
         {
@@ -142,6 +146,14 @@ namespace HartUI.Components
             // causes the other methods inside this class to not run
             // that stops any exceptions in the code trying to access disposed or null stuff 
             shouldCloseDown = true;
+
+
+            if (tenFramesDrawnHandler != null)
+            {
+                DrawingHelper.TenFramesDrawn -= tenFramesDrawnHandler;
+                tenFramesDrawnHandler = null;
+            }
+
             if (!wasFormClosingCalled && TargetForm != null)
             {
                 wasFormClosingCalled = true;
@@ -297,35 +309,64 @@ namespace HartUI.Components
         private const uint SWP_NOACTIVATE = 0x0010;
         private static readonly IntPtr HWND_TOP = new IntPtr(0);
 
-        void UpdateTargetFormRegion()
+        private void UpdateTargetFormRegion()
         {
-            TargetForm.Region = Region.FromHrgn(CreateRoundRectRgn(0, 0, TargetForm.Width, TargetForm.Height, (int)(Rounding * 2f), (int)(Rounding * 2f)));
+            IntPtr hrgn = CreateRoundRectRgn(0, 0, TargetForm.Width, TargetForm.Height, (int)(Rounding * 2f), (int)(Rounding * 2f));
+
+            try
+            {
+                Region newRegion = Region.FromHrgn(hrgn);
+
+                TargetForm.Region?.Dispose();
+                TargetForm.Region = newRegion;
+            }
+            finally
+            {
+                DeleteObject(hrgn);
+            }
         }
 
         public void UpdateRoundedFormRegion()
         {
-            if (!DesignMode || TargetForm?.Opacity != 1)
+            if (roundedFormObj == null || roundedFormObj.IsDisposed)
             {
-                if (roundedFormObj != null && roundedFormObj.IsDisposed == false)
-                {
-                    // for opacity support
-                    Region region = new Region(roundedFormObj.ClientRectangle);
-                    Region offsetRegion = TargetForm.Region?.Clone();
-
-                    if (offsetRegion != null)
-                    {
-                        offsetRegion.Translate(1, 1);
-                        region.Exclude(offsetRegion);
-                    }
-
-                    roundedFormObj.Region = region;
-                }
+                return;
             }
-            else
+
+            Region newRegion = null;
+
+            try
             {
-                roundedFormObj.Region = new Region(roundedFormObj.ClientRectangle);
+                if (!DesignMode || TargetForm?.Opacity != 1)
+                {
+                    newRegion = new Region(roundedFormObj.ClientRectangle);
+
+                    using (Region offsetRegion = TargetForm.Region?.Clone())
+                    {
+                        if (offsetRegion != null)
+                        {
+                            offsetRegion.Translate(1, 1);
+                            newRegion.Exclude(offsetRegion);
+                        }
+                    }
+                }
+                else
+                {
+                    newRegion = new Region(roundedFormObj.ClientRectangle);
+                }
+
+                roundedFormObj.Region?.Dispose();
+                roundedFormObj.Region = newRegion;
+                newRegion = null;
+            }
+            finally
+            {
+                newRegion?.Dispose();
             }
         }
+
+        [DllImport("gdi32.dll")]
+        private static extern bool DeleteObject(IntPtr hObject);
 
         [DllImport("Gdi32.dll", EntryPoint = "CreateRoundRectRgn")]
         private static extern IntPtr CreateRoundRectRgn(int nLeftRect, int nTopRect, int nRightRect, int nBottomRect, int nWidthEllipse, int nHeightEllipse);
@@ -340,11 +381,17 @@ namespace HartUI.Components
 
             TargetForm.FormBorderStyle = FormBorderStyle.None;
 
+            if (roundedFormObj != null)
+            {
+                roundedFormObj.Activated -= FakeForm_Activated;
+                roundedFormObj.Dispose();
+            }
+
             roundedFormObj = new RoundedForm(TargetForm.BackColor, OutlineColor, ref privateRounding);
             roundedFormObj.TargetForm = TargetForm;
             roundedFormObj.Tag = TargetForm.Opacity;
 
-            TargetForm.Region = Region.FromHrgn(CreateRoundRectRgn(0, 0, TargetForm.Width, TargetForm.Height, (int)(Rounding * 2f), (int)(Rounding * 2f))); ;
+            UpdateTargetFormRegion();
 
             roundedFormObj?.Show();
 
@@ -373,36 +420,29 @@ namespace HartUI.Components
 
             // Drawing.TenFramesDrawn is called every 10000/hz milliseconds
             // where hz stands for the maximum refresh rate recorded from all display devices
-            DrawingHelper.TenFramesDrawn += (_, __) =>
+            tenFramesDrawnHandler = DrawingHelper_TenFramesDrawn;
+            DrawingHelper.TenFramesDrawn += tenFramesDrawnHandler;
+        }
+
+        private void DrawingHelper_TenFramesDrawn(object sender, EventArgs e)
+        {
+            if (roundedFormObj != null && shouldCloseDown == false && roundedFormObj.IsDisposed == false)
             {
-                if (roundedFormObj != null && shouldCloseDown == false && roundedFormObj.IsDisposed == false)
-                {
-                    try // https://github.com/1Kxhu/HartUI/issues/11 fix #1
-                    {
-                        // this is the part that MAY raise an exception from ComboBoxDropDown
-                        roundedFormObj.Tag = TargetForm.Opacity;
-                        roundedFormObj.InvalidateNextDrawCall = true;
-                    }
-                    catch
-                    {
-                        // ComboBoxDropDown raises an exception here
-                        // but we can just not care about this, since it's opacity is ALWAYS 100%
-                    }
+                roundedFormObj.Tag = TargetForm.Opacity;
+                roundedFormObj.InvalidateNextDrawCall = true;
 
-                    // TopMost smooth corners n border disappear fix
-                    if (TargetForm != null && TargetForm.IsDisposed == false && TargetForm.TopMost != roundedFormObj.TopMost)
-                    {
-                        roundedFormObj.TopMost = TargetForm.TopMost;
-                    }
-                }
-                else if (roundedFormObj.initialized)
+                // TopMost smooth corners n border disappear fix
+                if (TargetForm != null && TargetForm.IsDisposed == false && TargetForm.TopMost != roundedFormObj.TopMost)
                 {
-                    // either roundedFormObj is null or "stop" is true
-                    // stop is true when the form had announced it wants to close (see TargetForm_FormClosing)
-                    Dispose();
+                    roundedFormObj.TopMost = TargetForm.TopMost;
                 }
-            };
-
+            }
+            else if (roundedFormObj?.initialized == true)
+            {
+                // either roundedFormObj is null or "stop" is true
+                // stop is true when the form had announced it wants to close (see TargetForm_FormClosing)
+                Dispose();
+            }
         }
 
         Bitmap experimentalBitmap
@@ -413,7 +453,11 @@ namespace HartUI.Components
         // truly the smooth corner experience (tears of joy as of writing this)
         private void UpdateExperimentalBitmap()
         {
-            if (DesignMode || TargetForm == null || TargetForm.IsDisposed || shouldCloseDown || roundedFormObj != null || roundedFormObj.IsDisposed || !roundedFormObj.initialized)
+            if (DesignMode ||
+                TargetForm == null || TargetForm.IsDisposed ||
+                shouldCloseDown ||
+                roundedFormObj == null || roundedFormObj.IsDisposed ||
+                !roundedFormObj.initialized)
             {
                 return;
             }
@@ -421,26 +465,26 @@ namespace HartUI.Components
             if (Rounding == 0)
             {
                 experimentalBitmap?.Dispose();
-                roundedFormObj?.UpdBitmap();
+                experimentalBitmap = null;
+                roundedFormObj.UpdBitmap();
                 return;
             }
 
             int targetWidth = Math.Max(TargetForm.Width + 1, 1);
             int targetHeight = Math.Max(TargetForm.Height + 1, 1);
 
-            var newBitmap = new Bitmap(targetWidth, targetHeight);
+            Bitmap newBitmap = new Bitmap(targetWidth, targetHeight);
 
             using (Graphics g = Graphics.FromImage(newBitmap))
             {
                 g.Clear(Color.Transparent);
-                TargetForm?.DrawToBitmap(newBitmap, new Rectangle(0, 0, TargetForm.Width, TargetForm.Height));
+                TargetForm.DrawToBitmap(newBitmap, new Rectangle(0, 0, TargetForm.Width, TargetForm.Height));
             }
 
             experimentalBitmap?.Dispose();
             experimentalBitmap = newBitmap;
-            //experimentalBitmap.Save(@"C:\Desktop\cuoreh.png");
-            roundedFormObj?.UpdBitmap(newBitmap);
 
+            roundedFormObj.UpdBitmap(newBitmap);
         }
 
         FormWindowState lastState;
@@ -471,10 +515,11 @@ namespace HartUI.Components
 
                 if (TargetForm.WindowState == FormWindowState.Normal)
                 {
-                    TargetForm.Region = Region.FromHrgn(CreateRoundRectRgn(0, 0, TargetForm.Width, TargetForm.Height, (int)(Rounding * 2f), (int)(Rounding * 2f)));
+                    UpdateTargetFormRegion();
                 }
                 else
                 {
+                    TargetForm.Region?.Dispose();
                     TargetForm.Region = null;
                 }
             }

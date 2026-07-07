@@ -39,9 +39,9 @@ namespace HartUI.Components
 
                 privateTargetForm = value;
 
-                if (value != null)
+                if (privateTargetForm != null)
                 {
-                    value.HandleCreated += Value_HandleCreated;
+                    privateTargetForm.HandleCreated += Value_HandleCreated;
                 }
             }
         }

@@ -28,15 +28,8 @@ namespace HartUI.Components
             }
             set
             {
-                if (TargetControl is Form || value is Form || value == null)
+                if (ReferenceEquals(privateTargetControl, value))
                 {
-                    privateTargetControl = null;
-                    cachedBitmap?.Dispose();
-                    cachedBitmap = null;
-                    if ((Debugger.IsAttached || DesignMode) && value != null)
-                    {
-                        MessageBox.Show($"Cannot set TargetControl to type Form in this cuiControlBlur instance.\nBlurring the whole form would be too expensive for winforms, sorry.", "HartUI");
-                    }
                     return;
                 }
 
@@ -44,18 +37,36 @@ namespace HartUI.Components
                 {
                     privateTargetControl.Paint -= TargetControl_Paint;
                     privateTargetControl.Invalidated -= TargetControl_Invalidated;
+
+                    cachedBitmap?.Dispose();
+                    cachedBitmap = null;
+
+                    privateTargetControl.Refresh();
                 }
-                value.Parent?.Invalidate();
+
+                privateTargetControl = null;
+
+                if (value == null)
+                {
+                    return;
+                }
+
+                if (value is Form)
+                {
+                    if (Debugger.IsAttached || DesignMode)
+                    {
+                        MessageBox.Show("Whole forms cannot be blurred, please select a control instead.", "HartUI");
+                    }
+
+                    return;
+                }
 
                 privateTargetControl = value;
-                if (privateTargetControl != null)
-                {
-                    privateTargetControl.Paint += TargetControl_Paint;
-                    privateTargetControl.Invalidated += TargetControl_Invalidated;
-                }
-                cachedBitmap?.Dispose();
-                cachedBitmap = null;
-                privateTargetControl?.Invalidate();
+
+                privateTargetControl.Paint += TargetControl_Paint;
+                privateTargetControl.Invalidated += TargetControl_Invalidated;
+
+                privateTargetControl.Invalidate();
             }
         }
 
@@ -114,15 +125,11 @@ namespace HartUI.Components
 
         protected override void Dispose(bool disposing)
         {
-            if (!disposing)
+            if (disposing)
             {
-                cachedBitmap = null;
-                cachedBitmap?.Dispose();
-                TargetControl.Paint -= TargetControl_Paint;
-                TargetControl.Invalidated -= TargetControl_Invalidated;
-                TargetControl.Invalidate();
                 TargetControl = null;
             }
+
             base.Dispose(disposing);
         }
     }

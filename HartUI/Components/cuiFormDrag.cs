@@ -57,5 +57,17 @@ namespace HartUI.Components
                 SendMessage(TargetForm.Handle, WM_NCLBUTTONDOWN, HTCAPTION, 0);
             }
         }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                if (privateTargetForm != null)
+                {
+                    privateTargetForm.MouseMove -= MouseMove;
+                }
+            }
+            base.Dispose(disposing);
+        }
     }
 }
