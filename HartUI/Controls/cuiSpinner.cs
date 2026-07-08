@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
-using static HartUI.Helpers.DrawingHelper;
 
 namespace HartUI.Controls
 {
@@ -14,80 +13,86 @@ namespace HartUI.Controls
     public partial class cuiSpinner : Control
     {
         private readonly Timer animationTimer = new Timer();
-        private readonly Stopwatch stopwatch = Stopwatch.StartNew();
+        private readonly Stopwatch stopwatch = new Stopwatch();
+
         private long lastElapsedTicks;
 
         private float privateRotateSpeed = 2f;
         private float privateRotation = 0f;
         private float privateArcSize = 5f;
+
         private const float ArcDegrees = 90f;
 
         private Color privateArcColor = DrawingHelper.PrimaryColor;
         private Color privateRingColor = Color.FromArgb(64, 128, 128, 128);
 
-        bool alreadySpinning = false;
+        private bool privateRotateEnabled = true;
 
         public cuiSpinner()
         {
             InitializeComponent();
 
             DoubleBuffered = true;
+
             SetStyle(ControlStyles.UserPaint, true);
             SetStyle(ControlStyles.AllPaintingInWmPaint, true);
             SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
 
-            lastElapsedTicks = stopwatch.ElapsedTicks;
-
-            // Use the refresh-rate-derived interval here, not as the delta itself.
             animationTimer.Interval = Math.Max(1, DrawingHelper.LazyTimeDelta);
             animationTimer.Tick += AnimationTimer_Tick;
-
-            if (alreadySpinning == false)
-            {
-                FrameDrawn -= RotateOnFrameDrawn;
-                FrameDrawn += RotateOnFrameDrawn;
-                alreadySpinning = true;
-            }
         }
 
         protected override void OnHandleCreated(EventArgs e)
         {
             base.OnHandleCreated(e);
 
-            if (!DesignMode && RotateEnabled)
+            if (RotateEnabled)
             {
-                if (!animationTimer.Enabled)
-                {
-                    lastElapsedTicks = stopwatch.ElapsedTicks;
-                    animationTimer.Start();
-                }
+                StartAnimation();
             }
         }
 
         protected override void OnHandleDestroyed(EventArgs e)
         {
-            if (animationTimer.Enabled)
-            {
-                animationTimer.Stop();
-            }
+            StopAnimation();
 
             base.OnHandleDestroyed(e);
         }
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing && (components != null))
-            {
-                components.Dispose();
-            }
-
             if (disposing)
             {
+                animationTimer.Tick -= AnimationTimer_Tick;
                 animationTimer.Stop();
                 animationTimer.Dispose();
+
+                stopwatch.Stop();
+
+                components?.Dispose();
             }
 
             base.Dispose(disposing);
+        }
+
+        private void StartAnimation()
+        {
+            if (!IsHandleCreated || animationTimer.Enabled)
+            {
+                return;
+            }
+
+            stopwatch.Start();
+
+            lastElapsedTicks = stopwatch.ElapsedTicks;
+
+            animationTimer.Start();
+        }
+
+        private void StopAnimation()
+        {
+            animationTimer.Stop();
+            stopwatch.Stop();
         }
 
         private void AnimationTimer_Tick(object sender, EventArgs e)
@@ -98,26 +103,45 @@ namespace HartUI.Controls
             }
 
             long currentElapsedTicks = stopwatch.ElapsedTicks;
+
             long deltaTicks = currentElapsedTicks - lastElapsedTicks;
+
             lastElapsedTicks = currentElapsedTicks;
 
             float deltaSeconds = (float)deltaTicks / Stopwatch.Frequency;
 
-            // Preserves the old feel: RotateSpeed 2 was roughly 100 deg/sec.
             Rotation = privateRotation + (privateRotateSpeed * 50f * deltaSeconds);
         }
 
-        private void RotateOnFrameDrawn(object sender, EventArgs e)
+        [Category("HartUI")]
+        [DefaultValue(true)]
+        public bool RotateEnabled
         {
-            // Keep for compatibility with your existing event flow.
-            // The timer is the actual animation driver now.
-            if (RotateEnabled)
+            get => privateRotateEnabled;
+            set
             {
-                AnimationTimer_Tick(sender, e);
+                if (privateRotateEnabled == value)
+                {
+                    return;
+                }
+
+                privateRotateEnabled = value;
+
+                if (value)
+                {
+                    StartAnimation();
+                }
+                else
+                {
+                    StopAnimation();
+                }
+
+                Invalidate();
             }
         }
 
         [Category("HartUI")]
+        [DefaultValue(2f)]
         public float RotateSpeed
         {
             get => privateRotateSpeed;
@@ -127,8 +151,6 @@ namespace HartUI.Controls
                 Invalidate();
             }
         }
-
-        public bool RotateEnabled = true;
 
         [Category("HartUI")]
         public Color ArcColor
@@ -159,7 +181,8 @@ namespace HartUI.Controls
             set
             {
                 float wrapped = value % 360f;
-                if (wrapped < 0f)
+
+                if (wrapped < 0)
                 {
                     wrapped += 360f;
                 }
@@ -175,12 +198,13 @@ namespace HartUI.Controls
         }
 
         [Category("HartUI")]
+        [DefaultValue(5f)]
         public float Thickness
         {
             get => privateArcSize;
             set
             {
-                privateArcSize = value;
+                privateArcSize = Math.Max(0.5f, Math.Min(value, 100f));
                 Invalidate();
             }
         }
@@ -190,39 +214,33 @@ namespace HartUI.Controls
             float spinnerThickness = Math.Max(1f, Thickness * 2f);
 
             float side = Math.Min(ClientSize.Width, ClientSize.Height);
+
             if (side <= 0f)
             {
                 return RectangleF.Empty;
             }
 
-            // Keep the control drawable even when very small.
             side = Math.Max(side, spinnerThickness * 2f + spinnerThickness);
 
             float x = (ClientSize.Width - side) / 2f;
             float y = (ClientSize.Height - side) / 2f;
 
-            // Leave room so the pen does not clip at the edges.
             float inset = spinnerThickness / 2f;
-            return new RectangleF(x + inset, y + inset, side - spinnerThickness, side - spinnerThickness);
+
+            return new RectangleF(
+                x + inset,
+                y + inset,
+                side - spinnerThickness,
+                side - spinnerThickness);
         }
 
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);
 
-            if (DesignMode && !animationTimer.Enabled)
-            {
-                animationTimer.Start();
-            }
-            else if (!DesignMode && animationTimer.Enabled && !RotateEnabled)
-            {
-                animationTimer.Stop();
-            }
-
             e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
             e.Graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
 
-            float spinnerThickness = Math.Max(1f, Thickness * 2f);
             RectangleF bounds = GetSpinnerBounds();
 
             if (bounds.Width <= 0f || bounds.Height <= 0f)
@@ -230,13 +248,14 @@ namespace HartUI.Controls
                 return;
             }
 
+            float spinnerThickness = Math.Max(1f, Thickness * 2f);
+
             using (Pen ringPen = new Pen(RingColor, spinnerThickness))
-            using (Pen arcPen = new Pen(ArcColor, spinnerThickness)
+            using (Pen arcPen = new Pen(ArcColor, spinnerThickness))
             {
-                StartCap = LineCap.Round,
-                EndCap = LineCap.Round
-            })
-            {
+                arcPen.StartCap = LineCap.Round;
+                arcPen.EndCap = LineCap.Round;
+
                 e.Graphics.DrawArc(ringPen, bounds, 0f, 360f);
                 e.Graphics.DrawArc(arcPen, bounds, privateRotation, ArcDegrees);
             }
