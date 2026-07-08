@@ -41,8 +41,12 @@ Follow the step-by-step guide:
 
 # 📜 Documentation
 
+> No full-fledged documentation for the foreseeable future. The library is intuitive enough that you should know your way around if you've worked with frameworks like GunaUI or SiticoneUI before.
+
 > [!NOTE]
-> No documentation for the foreseeable future. The library is intuitive enough that you should know your way around if you've worked with frameworks like GunaUI or SiticoneUI before.
+> If you still want to see the **old** documentation, it's available on the forked website: [hartui.netlify.app/docs](https://hartui.netlify.app/docs)
+> 
+> The docs will either be removed or rewritten over time.
 
 ---
 
