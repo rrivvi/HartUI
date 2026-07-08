@@ -69,7 +69,6 @@ namespace HartUI.Controls.Shapes
 
         protected override void OnPaint(PaintEventArgs e)
         {
-            base.OnPaint(e);
             e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
 
             Rectangle modifiedCR = ClientRectangle;
@@ -86,6 +85,8 @@ namespace HartUI.Controls.Shapes
                 e.Graphics.PixelOffsetMode = PixelOffsetMode.Default;
                 e.Graphics.DrawEllipse(outlinePen, modifiedCR);
             }
+
+            base.OnPaint(e);
         }
     }
 }

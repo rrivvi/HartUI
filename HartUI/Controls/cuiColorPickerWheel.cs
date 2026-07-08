@@ -260,8 +260,6 @@ namespace HartUI.Controls
 
         protected override void OnPaint(PaintEventArgs e)
         {
-            base.OnPaint(e);
-
             // ensure triangle geometry is cached
             EnsureGeometry();
 
@@ -359,6 +357,8 @@ namespace HartUI.Controls
 
                 // e.Graphics.DrawString(privateHue.ToString(), Font, Brushes.Black, Point.Empty);
             }
+
+            base.OnPaint(e);
         }
 
         private PointF PointTowardsCenter(PointF inputPoint, float centerX, float centerY, double distance)

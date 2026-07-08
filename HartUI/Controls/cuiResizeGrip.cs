@@ -238,6 +238,8 @@ namespace HartUI.Controls
             {
                 Location = new Point(TargetForm.ClientSize.Width - Width, TargetForm.ClientSize.Height - Height);
             }
+
+            base.OnPaint(e);
         }
     }
 }

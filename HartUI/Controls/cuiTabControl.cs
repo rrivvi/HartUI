@@ -536,6 +536,8 @@ namespace HartUI.Controls
                     g.DrawPath(plusPen, plus);
                 }
             }
+
+            base.OnPaint(e);
         }
 
         private int _hoverIndex = -1;

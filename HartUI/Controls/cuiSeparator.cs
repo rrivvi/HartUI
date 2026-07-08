@@ -91,6 +91,7 @@ namespace HartUI.Controls
                 tempPath.AddRectangle(lineRect);
                 e.Graphics.DrawPath(pen, tempPath);
             }
+
             base.OnPaint(e);
         }
     }

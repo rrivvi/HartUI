@@ -236,8 +236,6 @@ namespace HartUI.Controls
 
         protected override void OnPaint(PaintEventArgs e)
         {
-            base.OnPaint(e);
-
             e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
             e.Graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
 
@@ -259,6 +257,8 @@ namespace HartUI.Controls
                 e.Graphics.DrawArc(ringPen, bounds, 0f, 360f);
                 e.Graphics.DrawArc(arcPen, bounds, privateRotation, ArcDegrees);
             }
+
+            base.OnPaint(e);
         }
 
         private void cuiSpinner_Load(object sender, EventArgs e)

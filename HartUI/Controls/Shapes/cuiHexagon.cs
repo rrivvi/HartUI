@@ -86,7 +86,6 @@ namespace HartUI.Controls.Shapes
 
         protected override void OnPaint(PaintEventArgs e)
         {
-            base.OnPaint(e);
             e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
 
             Rectangle modifiedCR = ClientRectangle;
