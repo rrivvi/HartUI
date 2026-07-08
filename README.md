@@ -1,6 +1,6 @@
 ![HartUI Banner (HartUI controls are shown in the window)](https://i.imgur.com/VWEqjRv.png)
 
-# ![hartui logo](https://i.imgur.com/thzDDEo.png) HartUI
+# ![hartui logo](https://i.imgur.com/cHZ3xql.png)HartUI
 
 A completely Free Winforms UI Library based on the now-archived [`CuoreUI.Winforms`](https://github.com/owtysm2/CuoreUI).
 
@@ -9,7 +9,7 @@ A completely Free Winforms UI Library based on the now-archived [`CuoreUI.Winfor
 
 ---
 
-# ![cui-32x](https://i.imgur.com/PHRIIbS.png) Migrating from CuoreUI?
+# ![cui-32x](https://i.imgur.com/f84tWbH.png)Migrating from CuoreUI?
 
 HartUI is based on **CuoreUI.Winforms**. Most projects should require only a few changes to migrate.
 
