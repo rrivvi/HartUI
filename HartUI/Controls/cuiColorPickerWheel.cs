@@ -172,6 +172,14 @@ namespace HartUI.Controls
             privateHueBitmap = bmp;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void ComputeTriangleVertices(PointF center, float r, out PointF pHue, out PointF pWhite, out PointF pBlack)
+        {
+            pHue = new PointF(center.X, center.Y - r);
+            pWhite = new PointF(center.X + r * Sin60 - 1f, center.Y + r * Cos60 - 1f);
+            pBlack = new PointF(center.X - r * Sin60, center.Y + r * Cos60 - 1f);
+        }
+
         private void EnsureGeometry()
         {
             int size = Math.Min(Width, Height);
@@ -190,16 +198,14 @@ namespace HartUI.Controls
 
             float r = innerRadius - 1f;
 
-            trianglePoints[0] = new PointF(cx, cy - r);
-            trianglePoints[1] = new PointF(cx + r * Sin60 - 1f, cy + r * Cos60 - 1f);
-            trianglePoints[2] = new PointF(cx - r * Sin60, cy + r * Cos60 - 1f);
+            ComputeTriangleVertices(new PointF(cx, cy), r, out trianglePoints[0], out trianglePoints[1], out trianglePoints[2]);
 
             trianglePointsV2[0] = new PointF(cx - 1f, cy - r);
             trianglePointsV2[1] = trianglePoints[1];
             trianglePointsV2[2] = trianglePoints[2];
         }
 
-        private void GenerateTriangleBitmap(double hue, int size, int innerRadius)
+        private void GenerateTriangleBitmap(double hue, int size, PointF pHue, PointF pWhite, PointF pBlack)
         {
             Bitmap bmp = new Bitmap(size, size, PixelFormat.Format32bppArgb);
             BitmapData bmpData = null;
@@ -210,13 +216,6 @@ namespace HartUI.Controls
 
                 int strideInts = bmpData.Stride / 4;
                 int[] pixels = new int[strideInts * size];
-
-                PointF center = new PointF(size / 2f, size / 2f);
-                float r = innerRadius - 1f;
-
-                PointF pHue = new PointF(center.X, center.Y - r);
-                PointF pWhite = new PointF(center.X + r * Sin60 - 1f, center.Y + r * Cos60 - 1f);
-                PointF pBlack = new PointF(center.X - r * Sin60, center.Y + r * Cos60 - 1f);
 
                 for (int y = 0; y < size; y++)
                 {
@@ -277,14 +276,20 @@ namespace HartUI.Controls
 
             e.Graphics.DrawImage(privateHueBitmap, x, y, size, size);
 
-            int outerRadius = size / 2 - 1;
-            int innerRadius = outerRadius - WheelThickness;
-
             // val/sat triangle
             if (privateTriangleBitmap == null || previouslyPaintedHue != privateHue)
             {
                 previouslyPaintedHue = privateHue;
-                GenerateTriangleBitmap(privateHue, size, innerRadius - 1);
+
+                // GenerateTriangleBitmap works in bitmap-local space (top-left origin),
+                // while trianglePoints is cached in control space. Translate by the
+                // ring bitmap's draw offset (x, y) to convert - no separate geometry
+                // computation needed here anymore.
+                PointF pHueLocal = new PointF(trianglePoints[0].X - x, trianglePoints[0].Y - y);
+                PointF pWhiteLocal = new PointF(trianglePoints[1].X - x, trianglePoints[1].Y - y);
+                PointF pBlackLocal = new PointF(trianglePoints[2].X - x, trianglePoints[2].Y - y);
+
+                GenerateTriangleBitmap(privateHue, size, pHueLocal, pWhiteLocal, pBlackLocal);
             }
 
             using (Pen antialiasPen = new Pen(BackColor, 4))
@@ -305,16 +310,10 @@ namespace HartUI.Controls
                 modifiedCR.Inflate(-WheelThickness, -WheelThickness);
                 e.Graphics.DrawEllipse(antialiasPen, modifiedCR);
 
-                try
-                {
-                    e.Graphics.DrawImage(privateTriangleBitmap, x, y, size, size);
-                }
-                catch
-                {
-                    // most likely sat/val triangle bitmap is locked and it shouldn't be touched right now
-                    return;
-                }
+                // inner triangle
+                e.Graphics.DrawImage(privateTriangleBitmap, x, y, size, size);
 
+                // triangle borders (fake anti aliasing)
                 antialiasPen.Width = 2;
                 e.Graphics.DrawPolygon(antialiasPen, trianglePoints);
                 e.Graphics.DrawPolygon(antialiasPen, trianglePointsV2);
@@ -354,8 +353,6 @@ namespace HartUI.Controls
                 e.Graphics.DrawLine(whereClickPen1,
                     p1hueSelectorPoint.X, p1hueSelectorPoint.Y,
                     p2hueSelectorPoint.X, p2hueSelectorPoint.Y);
-
-                // e.Graphics.DrawString(privateHue.ToString(), Font, Brushes.Black, Point.Empty);
             }
 
             base.OnPaint(e);
@@ -390,7 +387,14 @@ namespace HartUI.Controls
         // 0 - normal
         // 1 - hue ring
         // 2 - sat/val triangle
-        byte state = 0;
+        int colorPickerState = ColorPickerStates.Idle;
+
+        public static class ColorPickerStates
+        {
+            public const int Idle = 0;
+            public const int ChangingHue = 1;
+            public const int ChangingSatVal = 2;
+        }
 
         [Category("HartUI")]
         [Description("Any change in hue, brightness or saturation will invoke this event.")]
@@ -424,7 +428,6 @@ namespace HartUI.Controls
             }
             set
             {
-                float oldHue = privateContent.GetHue();
                 privateContent = value;
 
                 if (DesignMode)
@@ -461,7 +464,7 @@ namespace HartUI.Controls
                     }
                 }
 
-                if (state == 0)
+                if (colorPickerState == ColorPickerStates.Idle)
                 {
                     UpdateClickedRectangleFromColor();
                 }
@@ -473,17 +476,11 @@ namespace HartUI.Controls
 
         private void UpdateClickedRectangleFromColor()
         {
-            int size = Math.Min(Width, Height);
-            int centerX = Width / 2;
-            int centerY = Height / 2;
-            int outerRadius = size / 2 - 1;
-            int innerRadius = outerRadius - WheelThickness;
+            EnsureGeometry();
 
-            float r = innerRadius - 1;
-            PointF center = new PointF(centerX, centerY);
-            PointF pHue = new PointF(center.X, center.Y - r);
-            PointF pWhite = RotatePoint(center, pHue, 120);
-            PointF pBlack = RotatePoint(center, pHue, 240);
+            PointF pHue = trianglePoints[0];
+            PointF pWhite = trianglePoints[1];
+            PointF pBlack = trianglePoints[2];
 
             ColorToHSV(privateContent, out double h, out double s, out double v);
 
@@ -516,15 +513,12 @@ namespace HartUI.Controls
         {
             if (e.Button == MouseButtons.Left)
             {
-                int size = Math.Min(Width, Height);
                 PointF center = new PointF(Width / 2f, Height / 2f);
-                float rOuter = size / 2f - 1;
-                float rInner = rOuter - WheelThickness;
 
                 byte currentAlpha = Content.A;
 
                 // changing hue (ring)
-                if (state == 1)
+                if (colorPickerState == ColorPickerStates.ChangingHue)
                 {
                     float dx = e.X - center.X;
                     float dy = e.Y - center.Y;
@@ -550,14 +544,14 @@ namespace HartUI.Controls
                     ContentChanged?.Invoke(this, EventArgs.Empty);
                     Invalidate();
                 }
-
                 // changing saturation or value (triangle)
-                else if (state == 2)
+                else if (colorPickerState == ColorPickerStates.ChangingSatVal)
                 {
-                    float r = rInner - 1;
-                    PointF p1 = new PointF(center.X, center.Y - r);
-                    PointF p2 = new PointF(center.X + r * (float)Math.Sin(Math.PI / 3) - 1, center.Y + r * (float)Math.Cos(Math.PI / 3) - 1);
-                    PointF p3 = new PointF(center.X - r * (float)Math.Sin(Math.PI / 3), center.Y + r * (float)Math.Cos(Math.PI / 3) - 1);
+                    EnsureGeometry();
+
+                    PointF p1 = trianglePoints[0];
+                    PointF p2 = trianglePoints[1];
+                    PointF p3 = trianglePoints[2];
 
                     PointF p = e.Location;
                     if (!PointInTriangle(p, p1, p2, p3))
@@ -593,15 +587,15 @@ namespace HartUI.Controls
         {
             if (IsInHueRing(e.Location))
             {
-                state = 1;
+                colorPickerState = ColorPickerStates.ChangingHue;
             }
             else if (IsInValueTriangle(e.Location))
             {
-                state = 2;
+                colorPickerState = ColorPickerStates.ChangingSatVal;
             }
             else
             {
-                state = 0;
+                colorPickerState = ColorPickerStates.Idle;
             }
         }
 
@@ -611,12 +605,12 @@ namespace HartUI.Controls
 
         protected override void OnMouseUp(MouseEventArgs e)
         {
-            if (state != 0)
+            if (colorPickerState != ColorPickerStates.Idle)
             {
                 SelectedColor?.Invoke(this, EventArgs.Empty);
             }
 
-            state = 0;
+            colorPickerState = ColorPickerStates.Idle;
             base.OnMouseUp(e);
         }
 
@@ -637,16 +631,8 @@ namespace HartUI.Controls
 
         private bool IsInValueTriangle(Point point)
         {
-            int size = Math.Min(Width, Height);
-            int innerRadius = size / 2 - 1 - WheelThickness;
-            PointF center = new PointF(Width / 2f, Height / 2f);
-            float r = innerRadius;
-
-            PointF p1 = new PointF(center.X, center.Y - r);
-            PointF p2 = new PointF(center.X + r * (float)Math.Sin(Math.PI / 3) - 1, center.Y + r * (float)Math.Cos(Math.PI / 3) - 1);
-            PointF p3 = new PointF(center.X - r * (float)Math.Sin(Math.PI / 3), center.Y + r * (float)Math.Cos(Math.PI / 3) - 1);
-
-            return PointInTriangle(point, p1, p2, p3);
+            EnsureGeometry();
+            return PointInTriangle(point, trianglePoints[0], trianglePoints[1], trianglePoints[2]);
         }
 
         private bool isMouseOnControl = false;
