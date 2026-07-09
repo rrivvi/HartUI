@@ -2,14 +2,15 @@
 <package>
   <metadata>
     <id>HartUI.Winforms</id>
-    <version>2026.07.08.2</version>
+    <version>2026.07.09</version>
     <authors>rrvvee</authors>
     <owners>rrvvee</owners>
-    <description>The FREE WinForms UI Controls Library ∙ Stretch WinForms to its modern glory</description>
+    <description>The FREE WinForms UI Controls Library ∙ Stretch WinForms to its modern glory ∙ HartUI is a maintained continuation of CuoreUI</description>
     <icon>icon.png</icon>
     <license type="expression">Unlicense</license>
-    <tags>winforms modern controls ui cui theme winforms-ui ui-library modern-ui fluent-ui flat-ui material-ui custom-controls ui-components</tags>
+    <tags>winforms windows forms modern controls ui cui custom-controls desktop cuoreui winforms-ui ui-library modern-ui fluent-ui flat-ui material-ui custom-controls ui-components</tags>
     <repository type="git" url="https://github.com/rrivvi/HartUI" />
+    <projectUrl>https://hartui.netlify.app</projectUrl>
     <readme>README.md</readme>
     <dependencies>
     <group targetFramework=".NETFramework4.7.2" />
