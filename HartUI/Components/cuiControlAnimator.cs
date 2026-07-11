@@ -1,5 +1,4 @@
-﻿using HartUI.Controls;
-using HartUI.Helpers;
+﻿using HartUI.Helpers;
 using System;
 using System.ComponentModel;
 using System.Drawing;
@@ -20,7 +19,7 @@ namespace HartUI.Components
             InitializeComponent();
             paintHandler = (sender, e) =>
             {
-                if (animationFinished || !AnimateOpacity || currentControlOpacity > 254 || sender is cuiPictureBox)
+                if (animationFinished || !AnimateOpacity || currentControlOpacity > 254)
                     return;
 
                 Rectangle expandedRect = TargetControl.ClientRectangle;
@@ -177,8 +176,7 @@ namespace HartUI.Components
 
         public async Task PlayAnimation()
         {
-
-            if (animating || TargetControl == null || TargetControl is cuiPictureBox || DesignMode)
+            if (animating || TargetControl == null || DesignMode)
                 return;
             animating = true;
             animationFinished = false;
