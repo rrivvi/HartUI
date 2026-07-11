@@ -43,6 +43,7 @@ namespace HartUI.Controls
             }
             set
             {
+                if (privateDialogResult == value) return;
                 privateDialogResult = value;
             }
         }
@@ -58,7 +59,9 @@ namespace HartUI.Controls
             }
             set
             {
-                privateContent = value ?? string.Empty;
+                string newValue = value ?? string.Empty;
+                if (privateContent == newValue) return;
+                privateContent = newValue;
                 Invalidate();
             }
         }
@@ -92,6 +95,7 @@ namespace HartUI.Controls
             }
             set
             {
+                if (privateRounding == value) return;
                 privateRounding = value;
                 Invalidate();
             }
@@ -108,6 +112,7 @@ namespace HartUI.Controls
             }
             set
             {
+                if (privateNormalBackground == value) return;
                 privateNormalBackground = value;
                 Invalidate();
             }
@@ -124,6 +129,7 @@ namespace HartUI.Controls
             }
             set
             {
+                if (privateHoverBackground == value) return;
                 privateHoverBackground = value;
                 Invalidate();
             }
@@ -140,6 +146,7 @@ namespace HartUI.Controls
             }
             set
             {
+                if (privatePressedBackground == value) return;
                 privatePressedBackground = value;
                 Invalidate();
             }
@@ -156,6 +163,7 @@ namespace HartUI.Controls
             }
             set
             {
+                if (privateNormalOutline == value) return;
                 privateNormalOutline = value;
                 Invalidate();
             }
@@ -172,6 +180,7 @@ namespace HartUI.Controls
             }
             set
             {
+                if (privateHoverOutline == value) return;
                 privateHoverOutline = value;
                 Invalidate();
             }
@@ -188,6 +197,7 @@ namespace HartUI.Controls
             }
             set
             {
+                if (privatePressedOutline == value) return;
                 privatePressedOutline = value;
                 Invalidate();
             }
@@ -205,6 +215,7 @@ namespace HartUI.Controls
             }
             set
             {
+                if (privateCheckButton == value) return;
                 privateCheckButton = value;
                 Invalidate();
             }
@@ -221,12 +232,10 @@ namespace HartUI.Controls
             }
             set
             {
-                if (privateChecked != value)
-                {
-                    privateChecked = value;
-                    CheckedChanged?.Invoke(this, EventArgs.Empty);
-                }
+                if (privateChecked == value) return;
 
+                privateChecked = value;
+                CheckedChanged?.Invoke(this, EventArgs.Empty);
                 Invalidate();
             }
         }
@@ -252,6 +261,7 @@ namespace HartUI.Controls
             }
             set
             {
+                if (privateImage == value) return;
                 privateImage = value;
                 Invalidate();
             }
@@ -268,6 +278,7 @@ namespace HartUI.Controls
             }
             set
             {
+                if (privateCheckedBackground == value) return;
                 privateCheckedBackground = value;
                 Invalidate();
             }
@@ -284,6 +295,7 @@ namespace HartUI.Controls
             }
             set
             {
+                if (privateCheckedOutline == value) return;
                 privateCheckedOutline = value;
                 Invalidate();
             }
@@ -300,6 +312,7 @@ namespace HartUI.Controls
             }
             set
             {
+                if (privateTextAlignment == value) return;
                 privateTextAlignment = value;
                 Invalidate();
             }
@@ -316,7 +329,9 @@ namespace HartUI.Controls
             }
             set
             {
-                privateOutlineThickness = Math.Max(value, 0);
+                float clamped = Math.Max(value, 0);
+                if (privateOutlineThickness == clamped) return;
+                privateOutlineThickness = clamped;
                 privatePen.Width = privateOutlineThickness;
                 Invalidate();
             }
@@ -334,6 +349,7 @@ namespace HartUI.Controls
             }
             set
             {
+                if (privateImageExpand == value) return;
                 privateImageExpand = value;
                 Invalidate();
             }
@@ -350,6 +366,7 @@ namespace HartUI.Controls
             }
             set
             {
+                if (privateCheckedForeColor == value) return;
                 privateCheckedForeColor = value;
                 Invalidate();
             }
@@ -366,6 +383,7 @@ namespace HartUI.Controls
             }
             set
             {
+                if (privatePressedForeColor == value) return;
                 privatePressedForeColor = value;
                 Invalidate();
             }
@@ -395,6 +413,7 @@ namespace HartUI.Controls
             }
             set
             {
+                if (privateHoverForeColor == value) return;
                 privateHoverForeColor = value;
                 Invalidate();
             }
@@ -411,6 +430,7 @@ namespace HartUI.Controls
             }
             set
             {
+                if (textSpacing == value) return;
                 textSpacing = value;
                 Invalidate();
             }
@@ -426,6 +446,7 @@ namespace HartUI.Controls
             }
             set
             {
+                if (Padding.All == value) return;
                 Padding = new Padding(value);
                 Invalidate();
             }
@@ -649,6 +670,7 @@ namespace HartUI.Controls
             }
             set
             {
+                if (privateImageTint == value) return;
                 privateImageTint = value;
                 Invalidate();
             }
@@ -665,6 +687,7 @@ namespace HartUI.Controls
             }
             set
             {
+                if (privateHoverImageTint == value) return;
                 privateHoverImageTint = value;
                 Invalidate();
             }
@@ -681,6 +704,7 @@ namespace HartUI.Controls
             }
             set
             {
+                if (privateCheckedImageTint == value) return;
                 privateCheckedImageTint = value;
                 Invalidate();
             }
@@ -697,6 +721,7 @@ namespace HartUI.Controls
             }
             set
             {
+                if (privatePressedImageTint == value) return;
                 privatePressedImageTint = value;
                 Invalidate();
             }
@@ -768,6 +793,7 @@ namespace HartUI.Controls
         protected override void OnLostFocus(EventArgs e)
         {
             state = ButtonStates.Normal;
+            Invalidate();
             base.OnLostFocus(e);
         }
     }
