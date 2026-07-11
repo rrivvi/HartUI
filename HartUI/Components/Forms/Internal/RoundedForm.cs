@@ -34,18 +34,6 @@ namespace HartUI.Components.Forms
             }
         }
 
-        private Image privateBackgroundImage;
-        public Image BackgroundImageOfTargetForm
-        {
-            get => privateBackgroundImage;
-            set
-            {
-                privateBackgroundImage?.Dispose();
-                privateBackgroundImage = value;
-                DrawForm(null, EventArgs.Empty);
-            }
-        }
-
         public Color BackgroundColor
         {
             get => privateBackgroundColor;
@@ -131,13 +119,9 @@ namespace HartUI.Components.Forms
                 return;
             }
 
-            try
+            if (TargetForm != null && !TargetForm.IsDisposed)
             {
-                privateBackgroundColor = (Color)TargetForm?.BackColor;
-            }
-            catch
-            {
-
+                privateBackgroundColor = TargetForm.BackColor;
             }
 
             SuspendLayout();
@@ -150,6 +134,12 @@ namespace HartUI.Components.Forms
 
                     backImage?.Dispose();
                     backGraphics?.Dispose();
+
+                    if (Width <= 0 || Height <= 0)
+                    {
+                        return;
+                    }
+
                     backImage = new Bitmap(Width, Height);
                     backGraphics = Graphics.FromImage(backImage);
                 }
@@ -263,9 +253,10 @@ namespace HartUI.Components.Forms
         internal void UpdBitmap()
         {
             Region?.Dispose();
-            targetFormBt?.Dispose();
-            backgroundImageTextureBrush?.Image?.Dispose();
             backgroundImageTextureBrush?.Dispose();
+            backgroundImageTextureBrush = null;
+            targetFormBt?.Dispose();
+            targetFormBt = null;
             backgroundImageTextureBrush = null;
         }
 

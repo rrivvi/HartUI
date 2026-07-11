@@ -195,7 +195,7 @@ namespace HartUI.Components
                 privateTargetForm.ResizeEnd -= TargetForm_ResizeEnd;
 
                 // clean controls from targetform
-                TargetForm.Controls.Clear();
+                //TargetForm.Controls.Clear();
 
                 // send close message to all forms
                 TryCloseForm(TargetForm);

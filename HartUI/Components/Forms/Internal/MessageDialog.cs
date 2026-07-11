@@ -53,7 +53,7 @@ namespace HartUI.Components.Forms
 
         public Task<DialogResult> ShowDialog(Form parent, string text, string title, MessageBoxButtons buttons, Size targetSize, Size buttonSize)
         {
-            var tcs = new TaskCompletionSource<DialogResult>();
+            var tcs = new TaskCompletionSource<DialogResult>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             var dimmer = new Form
             {
@@ -70,7 +70,6 @@ namespace HartUI.Components.Forms
 
             var dialog = new MessageDialog(text, title, buttons, parent, targetSize, buttonsText, buttonSize)
             {
-                parentForm = parentForm,
                 BackColor = this.BackColor,
                 ForeColor = this.ForeColor,
                 Owner = dimmer,
@@ -147,20 +146,16 @@ namespace HartUI.Components.Forms
             dialog.FormClosed += (_, __) =>
             {
                 dialogFixerTimer.Stop();
+                dialogFixerTimer.Dispose();
                 parent.LocationChanged -= ParentLocationChanged;
                 parent.SizeChanged -= ParentSizeChanged;
 
                 tcs.TrySetResult(dialog.result);
 
-                dimmer.Hide();
-                dialog.Hide();
-
-                parent.Focus();
-
-                //rounder.Dispose();
+                rounder.Dispose();
                 rounder2.Dispose();
                 dialog.Dispose();
-                dimmer.Close();
+                dimmer.Dispose();
 
                 parent.TopMost = parentTopMostBefore;
                 parent.Enabled = parentEnabledBefore;
@@ -168,6 +163,10 @@ namespace HartUI.Components.Forms
 
                 parent.BringToFront();
                 parent.Focus();
+
+                parentForm = null;
+                dialogForm = null;
+                dimmerForm = null;
             };
 
             dialogFixerTimer.Start();
@@ -180,8 +179,6 @@ namespace HartUI.Components.Forms
             }
 
             dimmer.Show();
-
-            dialog.Owner = dimmer;
             dialog.Opacity = 1;
 
             rounder.roundedFormObj.Owner = dimmer;
@@ -199,7 +196,7 @@ namespace HartUI.Components.Forms
 
             RECT frameRect;
             DwmGetWindowAttribute(parentForm.Handle, DWMWA_EXTENDED_FRAME_BOUNDS, out frameRect, Marshal.SizeOf(typeof(RECT)));
-            Size newsize = Size = frameRect.ToRectangle().Size;
+            Size newsize = frameRect.ToRectangle().Size;
 
             if (!rounderExists)
             {

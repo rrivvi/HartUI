@@ -5,45 +5,46 @@ using System.Windows.Forms;
 
 internal static class FormsRegisteredByRounder
 {
-    public class RegisteredForm
+    private sealed class RegisteredForm
     {
-        public cuiFormRounder rounder;
-        public Form targetForm;
+        public Form TargetForm;
+        public cuiFormRounder Rounder;
     }
 
-    static List<RegisteredForm> registeredFormList = new List<RegisteredForm>();
+    private static readonly List<RegisteredForm> registeredFormList = new List<RegisteredForm>();
 
-    public static void RemoveByForm(Form formToRemove)
+    private static void CleanupInvalidForms()
     {
-        registeredFormList = registeredFormList.Where(f => f.targetForm != formToRemove).ToList();
+        registeredFormList.RemoveAll(f => f.TargetForm == null || f.TargetForm.IsDisposed);
+    }
+
+    public static void RemoveByForm(Form form)
+    {
+        registeredFormList.RemoveAll(f => f.TargetForm == form);
     }
 
     public static bool AddByForm(Form formToAdd, cuiFormRounder rounderToAdd)
     {
+        CleanupInvalidForms();
+
         if (GetRounderByForm(formToAdd) != null)
         {
             return false;
         }
 
-        RegisteredForm registeredForm = new RegisteredForm()
+        registeredFormList.Add(new RegisteredForm
         {
-            targetForm = formToAdd,
-            rounder = rounderToAdd
-        };
-
-        registeredFormList.Add(registeredForm);
+            TargetForm = formToAdd,
+            Rounder = rounderToAdd
+        });
 
         return true;
     }
 
     public static cuiFormRounder GetRounderByForm(Form formSelector)
     {
-        RegisteredForm foundForm = registeredFormList.FirstOrDefault(f => f.targetForm == formSelector);
-        if (foundForm != null)
-        {
-            return foundForm.rounder;
-        }
+        CleanupInvalidForms();
 
-        return null;
+        return registeredFormList.FirstOrDefault(f => f.TargetForm == formSelector)?.Rounder;
     }
 }

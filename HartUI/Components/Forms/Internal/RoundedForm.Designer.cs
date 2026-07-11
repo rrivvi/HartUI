@@ -32,8 +32,6 @@
                 targetFormBt = null;
                 backgroundImageTextureBrush?.Dispose();
                 backgroundImageTextureBrush = null;
-                privateBackgroundImage?.Dispose();
-                privateBackgroundImage = null;
             }
 
             base.Dispose(disposing);
