@@ -427,7 +427,10 @@ namespace HartUI.Controls
                     }
                     else
                     {
-                        char[] firstLetters = clipboardText.Where(c => char.IsLetterOrDigit(c)).Take(BoxAmount - Content.Length).ToArray();
+                        char[] firstLetters = clipboardText
+                            .Where(c => char.IsLetterOrDigit(c) && (!OnlyDigit || char.IsDigit(c)))
+                            .Take(BoxAmount - Content.Length)
+                            .ToArray();
                         foreach (char c in firstLetters)
                         {
                             OnKeyPress(new KeyPressEventArgs(c));
@@ -458,7 +461,7 @@ namespace HartUI.Controls
         {
             try
             {
-                if (!char.IsLetterOrDigit(e.KeyChar))
+                if (!char.IsLetterOrDigit(e.KeyChar) || (OnlyDigit && !char.IsDigit(e.KeyChar)))
                 {
                     e.Handled = true;
                     return;
