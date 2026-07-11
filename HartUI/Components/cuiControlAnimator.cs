@@ -2,6 +2,7 @@
 using System;
 using System.ComponentModel;
 using System.Drawing;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using static HartUI.Helpers.DrawingHelper;
@@ -12,7 +13,7 @@ namespace HartUI.Components
     [ToolboxBitmap(typeof(TrackBar))]
     public partial class cuiControlAnimator : Component
     {
-        private PaintEventHandler paintHandler;
+        private readonly PaintEventHandler paintHandler;
 
         public cuiControlAnimator()
         {
@@ -22,15 +23,16 @@ namespace HartUI.Components
                 if (animationFinished || !AnimateOpacity || currentControlOpacity > 254)
                     return;
 
-                Rectangle expandedRect = TargetControl.ClientRectangle;
+                Control paintedControl = (Control)sender;
+
+                Rectangle expandedRect = paintedControl.ClientRectangle;
                 expandedRect.Inflate(2, 2);
 
-                using (SolidBrush br = new SolidBrush(Color.FromArgb(currentControlOpacity, TargetControl.BackColor)))
+                using (SolidBrush br = new SolidBrush(Color.FromArgb(currentControlOpacity, paintedControl.BackColor)))
                 {
                     e.Graphics.FillRectangle(br, expandedRect);
                 }
             };
-
         }
 
         private Control privateTargetControl;
@@ -47,10 +49,13 @@ namespace HartUI.Components
                     return;
                 }
 
+                CancelAnimation();
+
                 if (privateTargetControl != null)
                 {
                     privateTargetControl.HandleCreated -= PrivateTargetControl_HandleCreated;
                     privateTargetControl.Paint -= paintHandler;
+                    privateTargetControl.LocationChanged -= TargetControl_LocationChanged;
                 }
 
                 privateTargetControl = null;
@@ -89,14 +94,8 @@ namespace HartUI.Components
         [Description("How long the animation should last in milliseconds. (ms)")]
         public int Duration
         {
-            get
-            {
-                return privateDuration;
-            }
-            set
-            {
-                privateDuration = value;
-            }
+            get => privateDuration;
+            set => privateDuration = Math.Max(1, value);
         }
 
         private bool privateAnimateOpacity = false;
@@ -105,47 +104,25 @@ namespace HartUI.Components
         [Description("Animates 'opacity' of the control from 0 -> 1.")]
         public bool AnimateOpacity
         {
-            get
-            {
-                return privateAnimateOpacity;
-            }
-            set
-            {
-                privateAnimateOpacity = value;
-            }
+            get => privateAnimateOpacity;
+            set => privateAnimateOpacity = value;
         }
 
         [Category("HartUI")]
         [Description("Choose the easing type that suits the best.")]
-        public EasingTypes EasingType
-        {
-            get;
-            set;
-        } = EasingTypes.QuadInOut;
+        public EasingTypes EasingType { get; set; } = EasingTypes.QuadInOut;
 
         [Category("HartUI")]
         [Description("Where the TargetControl should be moved to.")]
-        public Point TargetLocation
-        {
-            get;
-            set;
-        } = Point.Empty;
+        public Point TargetLocation { get; set; } = Point.Empty;
 
         [Category("HartUI")]
         [Description("Animate control when first shown on screen.")]
-        public bool AnimateOnStart
-        {
-            get;
-            set;
-        } = true;
+        public bool AnimateOnStart { get; set; } = true;
 
         [Category("HartUI")]
         [Description("Either move to TargetLocation or ignore animating location.")]
-        public bool AnimateLocation
-        {
-            get;
-            set;
-        } = true;
+        public bool AnimateLocation { get; set; } = true;
 
         private OpacityEnum privateTargetOpacity = OpacityEnum.Visible;
 
@@ -163,112 +140,173 @@ namespace HartUI.Components
             Transparent = 0
         }
 
-        private int startX;
-        private int startY;
-        private double xDistance;
-        private double yDistance;
+        Point expectedLocation;
+        Point externalOffset;
 
-        private double elapsedTime = 0;
-        private bool animating = false;
-        private bool animationFinished = true;
+        bool writingLocation;
+
+        Point animationOrigin;
+        Point animationDestination;
+
+        bool animating = false;
+        bool animationFinished = true;
 
         byte currentControlOpacity = 255;
+
+        CancellationTokenSource animationCts;
+
+        [Browsable(false)]
+        public bool IsAnimating => animating;
+
+        private void WriteAnimatedLocation(Control target, Point location)
+        {
+            writingLocation = true;
+
+            try
+            {
+                expectedLocation = location;
+                target.Location = location;
+            }
+            finally
+            {
+                writingLocation = false;
+            }
+        }
 
         public async Task PlayAnimation()
         {
             if (animating || TargetControl == null || DesignMode)
                 return;
+
             animating = true;
             animationFinished = false;
 
-            TargetControl.Paint += paintHandler;
+            CancellationTokenSource cts = new CancellationTokenSource();
+            animationCts = cts;
+            CancellationToken token = cts.Token;
 
-            startX = TargetControl.Left;
-            startY = TargetControl.Top;
+            Control target = TargetControl;
 
-            xDistance = -(startX - TargetLocation.X);
-            yDistance = -(startY - TargetLocation.Y);
+            target.Paint += paintHandler;
+            target.LocationChanged += TargetControl_LocationChanged;
 
-            DateTime lastFrameTime = DateTime.Now;
-
-            double durationRatio = Duration / (double)1000;
-
-            //MessageBox.Show(durationRatio.ToString() + $", d:{Duration}, recalc:{Duration/(double)1000}");
-
-            // save now so if its changed mid loop we still use this value
-            // later used in the while loop aswell
-            bool shouldAnimateLocationNow = AnimateLocation;
-            EmergencySetLocation(Duration, shouldAnimateLocationNow);
-
-            bool animateTowardsVisible = TargetOpacity == OpacityEnum.Visible;
-            AnimationStarted?.Invoke(this, EventArgs.Empty);
-
-            while (true)
+            try
             {
+                animationOrigin = target.Location;
+                animationDestination = TargetLocation;
 
-                DateTime rightnow = DateTime.Now;
-                double elapsedMilliseconds = (rightnow - lastFrameTime).TotalMilliseconds;
+                expectedLocation = animationOrigin;
+                externalOffset = Point.Empty;
 
-                // uhhhhh this is so weird but it works..
-                elapsedTime += (elapsedMilliseconds / Duration);
+                DateTime lastFrameTime = DateTime.Now;
 
-                if (elapsedTime >= Duration || IsAnimationFinished())
+                bool shouldAnimateLocationNow = AnimateLocation;
+                bool animateTowardsVisible = TargetOpacity == OpacityEnum.Visible;
+
+                AnimationStarted?.Invoke(this, EventArgs.Empty);
+
+                double progress = 0;
+
+                while (!animationFinished)
                 {
-                    animating = false;
-                    animationFinished = true;
-                    elapsedTime = 0;
-                    TargetControl.Paint -= paintHandler;
-                    //MessageBox.Show($"{elapsedTime}, {privateDuration}");
-                    return;
-                }
+                    token.ThrowIfCancellationRequested();
 
-                double progress = DrawingHelper.EasingFunctions.FromEasingType(EasingType, elapsedTime, Duration / (double)1000) * durationRatio;
+                    DateTime rightnow = DateTime.Now;
+                    double elapsedMilliseconds = (rightnow - lastFrameTime).TotalMilliseconds;
 
-                if (shouldAnimateLocationNow)
-                {
-                    TargetControl.Left = startX + (int)(xDistance * progress);
-                    TargetControl.Top = startY + (int)(yDistance * progress);
-                }
+                    progress += elapsedMilliseconds / Duration;
+                    progress = Math.Min(progress, 1.0);
 
-                if (AnimateOpacity)
-                {
-                    if (animateTowardsVisible)
+                    double eased = EasingFunctions.FromEasingType(EasingType, progress);
+
+                    // Location
+                    if (shouldAnimateLocationNow)
                     {
-                        currentControlOpacity = (byte)((1 - (progress * 100)) * 2.5d);
+                        Point animationLocation = new Point(
+                            animationOrigin.X + (int)((animationDestination.X - animationOrigin.X) * eased),
+                            animationOrigin.Y + (int)((animationDestination.Y - animationOrigin.Y) * eased));
+
+                        Point nextLocation = new Point(
+                            animationLocation.X + externalOffset.X,
+                            animationLocation.Y + externalOffset.Y);
+
+                        WriteAnimatedLocation(target, nextLocation);
                     }
-                    else
+
+                    // "Opacity"
+                    if (AnimateOpacity)
                     {
-                        currentControlOpacity = (byte)((progress * 100) * 2.5d);
+                        if (animateTowardsVisible)
+                        {
+                            currentControlOpacity = (byte)((1 - (eased * 100)) * 2.5d);
+                        }
+                        else
+                        {
+                            currentControlOpacity = (byte)((eased * 100) * 2.5d);
+                        }
+                        target.Invalidate();
                     }
-                    TargetControl.Invalidate();
+
+                    // Check if can exit
+                    if (progress >= 1.0)
+                    {
+                        progress = 1.0;
+
+                        if (shouldAnimateLocationNow)
+                        {
+                            WriteAnimatedLocation(target, new Point(
+                                animationDestination.X + externalOffset.X,
+                                animationDestination.Y + externalOffset.Y));
+                        }
+
+                        animationFinished = true;
+                        break;
+                    }
+
+                    lastFrameTime = rightnow;
+                    await Task.Delay(1000 / DrawingHelper.GetHighestRefreshRate(), token);
                 }
 
-                lastFrameTime = rightnow;
-                await Task.Delay(1000 / DrawingHelper.GetHighestRefreshRate());
+                AnimationEnded?.Invoke(this, EventArgs.Empty);
             }
+            catch (OperationCanceledException)
+            {
+                // Cancelled or TargetControl was changed/disposed mid animation
+            }
+            finally
+            {
+                target.Paint -= paintHandler;
+                target.LocationChanged -= TargetControl_LocationChanged;
 
+                animating = false;
+                animationFinished = true;
+
+                if (ReferenceEquals(animationCts, cts))
+                {
+                    animationCts = null;
+                }
+
+                cts.Dispose();
+            }
         }
 
-        public bool IsAnimationFinished()
+        private void TargetControl_LocationChanged(object sender, EventArgs e)
         {
-            return animationFinished;
+            if (writingLocation)
+                return;
+
+            Control changedControl = (Control)sender;
+
+            externalOffset = new Point(
+                externalOffset.X + (changedControl.Location.X - expectedLocation.X),
+                externalOffset.Y + (changedControl.Location.Y - expectedLocation.Y));
+
+            expectedLocation = changedControl.Location;
         }
 
-        private async void EmergencySetLocation(int Duration, bool shouldAnimateLocationNow)
+        public void CancelAnimation()
         {
-            animationFinished = false;
-            await Task.Delay(Duration + (1000 / DrawingHelper.GetHighestRefreshRate()));
-
-            if (shouldAnimateLocationNow)
-            {
-                TargetControl.Left = startX + (int)(xDistance);
-                TargetControl.Top = startY + (int)(yDistance);
-            }
-
-            animationFinished = true;
-            animating = false;
-            elapsedTime = 0;
-            AnimationEnded?.Invoke(this, EventArgs.Empty);
+            animationCts?.Cancel();
         }
 
         [Category("HartUI")]
