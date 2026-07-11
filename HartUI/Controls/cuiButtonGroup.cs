@@ -185,6 +185,11 @@ namespace HartUI.Controls
             {
                 if (privateChecked != value)
                 {
+                    if (value)
+                    {
+                        UpdateGroup();
+                    }
+
                     privateChecked = value;
                     CheckedChanged?.Invoke(this, EventArgs.Empty);
                 }
@@ -717,21 +722,26 @@ namespace HartUI.Controls
         {
             if (updateGroup && isInside)
             {
-                var parentControls = Parent?.Controls;
-                if (parentControls != null)
-                {
-                    foreach (Control ctrl in parentControls)
-                    {
-                        if (ctrl is cuiButtonGroup cbg && cbg.Group == Group)
-                        {
-                            cbg.Checked = ReferenceEquals(cbg, this);
-                        }
-                    }
-                }
+                UpdateGroup();
             }
 
             state = isInside ? ButtonStates.Hovered : ButtonStates.Normal;
             Invalidate();
+        }
+
+        private void UpdateGroup()
+        {
+            var parentControls = Parent?.Controls;
+            if (parentControls != null)
+            {
+                foreach (Control ctrl in parentControls)
+                {
+                    if (ctrl is cuiButtonGroup cbg && cbg != this && cbg.Group == Group)
+                    {
+                        cbg.Checked = ReferenceEquals(cbg, this);
+                    }
+                }
+            }
         }
 
         public void PerformClick()
