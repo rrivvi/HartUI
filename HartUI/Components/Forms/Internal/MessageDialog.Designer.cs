@@ -30,13 +30,14 @@
         {
             this.SuspendLayout();
             // 
-            // cuiMessageDialog
+            // MessageDialog
             // 
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
             this.ClientSize = new System.Drawing.Size(284, 261);
+            this.DoubleBuffered = true;
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.ImeMode = System.Windows.Forms.ImeMode.Off;
-            this.Name = "cuiMessageDialog";
+            this.Name = "MessageDialog";
             this.ResumeLayout(false);
 
         }

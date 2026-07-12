@@ -152,6 +152,9 @@ namespace HartUI.Components.Forms
 
                 tcs.TrySetResult(dialog.result);
 
+                dimmer.Hide();
+                dialog.Hide();
+
                 rounder.Dispose();
                 rounder2.Dispose();
                 dialog.Dispose();
@@ -309,7 +312,7 @@ namespace HartUI.Components.Forms
 
                         Content = buttonText,
                         Size = buttonSize,
-                        DialogResult = DialogResult.OK
+                        DialogResult = DialogResult.OK,
                     };
                     btn.Click += (_, __) => { result = res; Close(); };
                     buttonHolder.Controls.Add(btn);
