@@ -221,10 +221,10 @@ namespace HartUI.Controls
             }
         }
 
-        private bool privateChecked = false;
+        protected bool privateChecked = false;
 
         [Category("HartUI")]
-        public bool Checked
+        public virtual bool Checked
         {
             get
             {
@@ -235,12 +235,19 @@ namespace HartUI.Controls
                 if (privateChecked == value) return;
 
                 privateChecked = value;
-                CheckedChanged?.Invoke(this, EventArgs.Empty);
+                RaiseCheckedChanged();
                 Invalidate();
             }
         }
 
-        private int state = ButtonStates.Normal;
+        protected void RaiseCheckedChanged()
+        {
+            CheckedChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        protected virtual bool IsRenderedChecked => CheckButton && Checked;
+
+        protected int state = ButtonStates.Normal;
         private SolidBrush privateBrush = new SolidBrush(Color.Black);
         private Pen privatePen = new Pen(Color.Black);
         StringFormat stringFormat = new StringFormat()
@@ -474,13 +481,14 @@ namespace HartUI.Controls
             Rectangle modifiedCR = ClientRectangle;
             modifiedCR.Width -= 1;
             modifiedCR.Height -= 1;
+            AdjustBackgroundRectangle(ref modifiedCR);
 
             Color renderedBackgroundColor = Color.Empty;
             Color renderedOutlineColor = Color.Empty;
             Color renderedTint = NormalImageTint;
             Color renderedForeColor = Color.Empty;
 
-            if (CheckButton && Checked)
+            if (IsRenderedChecked)
             {
                 renderedBackgroundColor = CheckedBackground;
                 renderedOutlineColor = CheckedOutline;
@@ -795,6 +803,13 @@ namespace HartUI.Controls
             state = ButtonStates.Normal;
             Invalidate();
             base.OnLostFocus(e);
+        }
+
+        protected virtual void AdjustBackgroundRectangle(ref Rectangle rect) { }
+
+        public virtual void PerformClick()
+        {
+            OnClick(EventArgs.Empty);
         }
     }
 }
