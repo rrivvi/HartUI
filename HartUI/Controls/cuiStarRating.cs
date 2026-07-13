@@ -60,6 +60,25 @@ namespace HartUI.Controls
             }
         }
 
+        private float privateRounding = 1;
+
+        [Category("HartUI")]
+        public float Rounding
+        {
+            get
+            {
+                return privateRounding;
+            }
+            set
+            {
+                if (privateRounding != value)
+                {
+                    privateRounding = value;
+                    Invalidate();
+                }
+            }
+        }
+
         [Category("HartUI")]
         public Color StarColor
         {
@@ -112,17 +131,20 @@ namespace HartUI.Controls
             int starWidth = Height - 2;
             int spacing = starWidth / 5;
 
-            for (int i = 0; i < StarCount; i++)
+            using (SolidBrush starBrush = new SolidBrush(StarColor))
+            using (SolidBrush backgroundBrush = new SolidBrush(BackColor))
+            using (Pen starBorderPen = new Pen(StarColor, StarBorderSize))
             {
-                int starLeft = i * (starWidth + spacing);
-                Rectangle starRect = new Rectangle(starLeft, 0, starWidth, this.Height);
-                starRect.Offset(starWidth / 2, 0);
-                starRect.Inflate(-StarBorderSize, -StarBorderSize);
-                starRect.Offset(StarBorderSize / 2, StarBorderSize / 2);
-
-                using (GraphicsPath starPath = GeneralHelper.Star(starLeft + starWidth / 2, Height / 2, starWidth / 2, starWidth / 3.8f, 5))
+                for (int i = 0; i < StarCount; i++)
                 {
-                    using (SolidBrush starBrush = new SolidBrush(StarColor))
+                    int starLeft = i * (starWidth + spacing);
+                    Rectangle starRect = new Rectangle(starLeft, 0, starWidth, this.Height);
+                    starRect.Offset(starWidth / 2, 0);
+                    starRect.Inflate(-StarBorderSize, -StarBorderSize);
+                    starRect.Offset(StarBorderSize / 2, StarBorderSize / 2);
+
+                    using (GraphicsPath starPath = GeneralHelper.Star(
+                               starLeft + starWidth / 2, Height / 2, starWidth / 2, starWidth / 3.8f, Rounding))
                     {
                         if ((i + 1) * 2 <= Rating)
                         {
@@ -135,15 +157,9 @@ namespace HartUI.Controls
                             starRect.Inflate(StarBorderSize, StarBorderSize);
                             starRect.Offset(-(StarBorderSize / 2), -(StarBorderSize / 2));
 
-                            using (SolidBrush backgroundBrush = new SolidBrush(BackColor))
-                            {
-                                e.Graphics.FillRectangle(backgroundBrush, starRect);
-                            }
+                            e.Graphics.FillRectangle(backgroundBrush, starRect);
                         }
-                    }
 
-                    using (Pen starBorderPen = new Pen(StarColor, StarBorderSize / 2f))
-                    {
                         e.Graphics.DrawPath(starBorderPen, starPath);
                     }
                 }

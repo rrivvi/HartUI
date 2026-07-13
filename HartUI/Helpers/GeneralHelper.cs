@@ -345,28 +345,129 @@ namespace HartUI.Helpers
             return new PointF(a.X + (b.X - a.X) * t, a.Y + (b.Y - a.Y) * t);
         }
 
-        public static GraphicsPath Star(float centerX, float centerY, float outerRadius, float innerRadius, int numPoints)
+        public static GraphicsPath Star(float centerX, float centerY, float outerRadius, float innerRadius, float outerCornerRadius)
         {
-            if (numPoints % 2 == 0 || numPoints < 5)
+            if (outerCornerRadius < 0f)
             {
-                throw new ArgumentException("Number of points must be an odd number and greater than or equal to 5.");
+                throw new ArgumentException("Corner radius cannot be negative.", nameof(outerCornerRadius));
             }
 
-            var path = new GraphicsPath();
+            const int numPoints = 5;
             float angleIncrement = 360f / numPoints;
             float currentAngle = -90f;
-            PointF[] points = new PointF[numPoints * 2];
+            var points = new PointF[numPoints * 2];
+            var radii = new float[numPoints * 2];
 
             for (int i = 0; i < numPoints * 2; i += 2)
             {
+                // Outer
                 points[i] = PointOnCircle(centerX, centerY, outerRadius, currentAngle);
+                radii[i] = outerCornerRadius;
+
+                // Inner
                 points[i + 1] = PointOnCircle(centerX, centerY, innerRadius, currentAngle + angleIncrement / 2);
+                radii[i + 1] = 0f;
+
                 currentAngle += angleIncrement;
             }
 
-            path.AddPolygon(points);
+            return RoundedPolygon(points, radii);
+        }
 
+        public static GraphicsPath RoundedPolygon(PointF[] points, float[] radii)
+        {
+            if (points == null || points.Length < 3)
+            {
+                throw new ArgumentException("At least 3 points are required.", nameof(points));
+            }
+            if (radii == null || radii.Length != points.Length)
+            {
+                throw new ArgumentException("radii must be the same length as points.", nameof(radii));
+            }
+
+            int n = points.Length;
+            var path = new GraphicsPath();
+            path.StartFigure();
+
+            bool first = true;
+            PointF previousEndPoint = PointF.Empty;
+
+            for (int i = 0; i < n; i++)
+            {
+                PointF prev = points[(i - 1 + n) % n];
+                PointF curr = points[i];
+                PointF next = points[(i + 1) % n];
+                float radius = radii[i];
+
+                float distPrev = Distance(curr, prev);
+                float distNext = Distance(curr, next);
+                PointF toPrev = Normalize(new PointF(prev.X - curr.X, prev.Y - curr.Y));
+                PointF toNext = Normalize(new PointF(next.X - curr.X, next.Y - curr.Y));
+
+                double dot = Clamp(toPrev.X * toNext.X + toPrev.Y * toNext.Y, -1.0, 1.0);
+                double theta = Math.Acos(dot);
+
+                if (radius <= 0.0001f || theta < 1e-4)
+                {
+                    if (first) { first = false; }
+                    else { path.AddLine(previousEndPoint, curr); }
+                    previousEndPoint = curr;
+                    continue;
+                }
+
+                double tanHalf = Math.Tan(theta / 2.0);
+                float d = (float)(radius / tanHalf);
+
+                float maxD = Math.Min(distPrev, distNext) * 0.999f;
+                float effectiveRadius = radius;
+                if (d > maxD)
+                {
+                    d = maxD;
+                    effectiveRadius = (float)(d * tanHalf);
+                }
+
+                PointF t1 = new PointF(curr.X + toPrev.X * d, curr.Y + toPrev.Y * d);
+                PointF t2 = new PointF(curr.X + toNext.X * d, curr.Y + toNext.Y * d);
+
+                PointF bisector = Normalize(new PointF(toPrev.X + toNext.X, toPrev.Y + toNext.Y));
+                double sinHalf = Math.Sin(theta / 2.0);
+                float centerDist = sinHalf > 1e-6 ? (float)(effectiveRadius / sinHalf) : 0f;
+                PointF arcCenter = new PointF(curr.X + bisector.X * centerDist, curr.Y + bisector.Y * centerDist);
+
+                if (first) { first = false; }
+                else { path.AddLine(previousEndPoint, t1); }
+
+                float startAngle = (float)(Math.Atan2(t1.Y - arcCenter.Y, t1.X - arcCenter.X) * 180.0 / Math.PI);
+                float endAngle = (float)(Math.Atan2(t2.Y - arcCenter.Y, t2.X - arcCenter.X) * 180.0 / Math.PI);
+
+                float sweep = endAngle - startAngle;
+                while (sweep <= -180f) sweep += 360f;
+                while (sweep > 180f) sweep -= 360f;
+
+                var bounds = new RectangleF(
+                    arcCenter.X - effectiveRadius,
+                    arcCenter.Y - effectiveRadius,
+                    effectiveRadius * 2f,
+                    effectiveRadius * 2f);
+
+                path.AddArc(bounds, startAngle, sweep);
+                previousEndPoint = t2;
+            }
+
+            path.CloseFigure();
             return path;
+        }
+
+        private static float Distance(PointF a, PointF b)
+        {
+            float dx = b.X - a.X;
+            float dy = b.Y - a.Y;
+            return (float)Math.Sqrt(dx * dx + dy * dy);
+        }
+
+        private static double Clamp(double value, double min, double max)
+        {
+            return value < min ? min : (value > max ? max : value);
         }
 
         private const float DegToRadF = 0.017453292519943295769236907684886f;
