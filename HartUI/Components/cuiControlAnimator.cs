@@ -1,6 +1,7 @@
 ﻿using HartUI.Helpers;
 using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.Threading;
 using System.Threading.Tasks;
@@ -198,7 +199,8 @@ namespace HartUI.Components
                 expectedLocation = animationOrigin;
                 externalOffset = Point.Empty;
 
-                DateTime lastFrameTime = DateTime.Now;
+                Stopwatch stopwatch = Stopwatch.StartNew();
+                long lastFrameElapsedMs = stopwatch.ElapsedMilliseconds;
 
                 bool shouldAnimateLocationNow = AnimateLocation;
                 bool animateTowardsVisible = TargetOpacity == OpacityEnum.Visible;
@@ -211,8 +213,8 @@ namespace HartUI.Components
                 {
                     token.ThrowIfCancellationRequested();
 
-                    DateTime rightnow = DateTime.Now;
-                    double elapsedMilliseconds = (rightnow - lastFrameTime).TotalMilliseconds;
+                    long nowElapsedMs = stopwatch.ElapsedMilliseconds;
+                    double elapsedMilliseconds = nowElapsedMs - lastFrameElapsedMs;
 
                     progress += elapsedMilliseconds / Duration;
                     progress = Math.Min(progress, 1.0);
@@ -263,7 +265,7 @@ namespace HartUI.Components
                         break;
                     }
 
-                    lastFrameTime = rightnow;
+                    lastFrameElapsedMs = nowElapsedMs;
                     await Task.Delay(1000 / DrawingHelper.GetHighestRefreshRate(), token);
                 }
 
