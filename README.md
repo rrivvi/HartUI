@@ -11,12 +11,10 @@ A completely Free Winforms UI Library based on the now-archived [`CuoreUI.Winfor
 
 # ![cui-32x](https://i.imgur.com/f84tWbH.png)Migrating from CuoreUI?
 
-HartUI is based on **CuoreUI.Winforms**. Most projects should require only a few changes to migrate.
+> [!CAUTION]
+> HartUI is based on **CuoreUI.Winforms**. However, some of HartUI's public API and control behaviours are different from the original. Consider staying on CuoreUI in your old projects, unless you need the changes introduced by HartUI.
 
-1. Uninstall the `CuoreUI.Winforms` NuGet package.
-2. Install `HartUI.Winforms`.
-3. Replace `CuoreUI` namespace mentions with `HartUI`. (In most cases, **Find & Replace** will work just fine)
-4. Rebuild your project.
+**If you want to migrate, check out [Migrating from CuoreUI](./.github/migrating-from-cuoreui.md)**
 
 # 🔧 Installation
 
