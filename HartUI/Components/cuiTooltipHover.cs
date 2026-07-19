@@ -30,10 +30,16 @@ namespace HartUI.Components
             get => privateTargetControl;
             set
             {
-                privateTargetControl = value;
                 if (privateTargetControl != null)
                 {
-                    value.MouseHover += MouseHover;
+                    privateTargetControl.MouseHover -= MouseHover;
+                }
+
+                privateTargetControl = value;
+
+                if (privateTargetControl != null)
+                {
+                    privateTargetControl.MouseHover += MouseHover;
                 }
             }
         }
