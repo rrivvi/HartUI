@@ -9,6 +9,8 @@
             if (disposing && (components != null))
             {
                 components.Dispose();
+                hookedParent.BackColorChanged -= HandleParentBackColorChanged;
+                hookedParent = null;
             }
             base.Dispose(disposing);
         }

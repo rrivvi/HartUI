@@ -25,34 +25,82 @@ namespace HartUI.Controls
             ForeColor = Color.FromArgb(84, 84, 84);
             SelectionMode = SelectionMode.One;
             Font = new Font("Microsoft YaHei UI", 9, FontStyle.Regular);
-
-            var parentForm = FindForm();
-            if (parentForm != null)
-            {
-                BackColor = parentForm.BackColor;
-            }
         }
 
         public override Color BackColor
         {
             get
             {
-                return base.BackColor;
+                if (privateExplicitBackColor.HasValue)
+                {
+                    return privateExplicitBackColor.Value;
+                }
+
+                Control target = Parent ?? FindForm();
+                return target != null ? target.BackColor : SystemColors.Window;
             }
             set
             {
-                if (value == Color.Empty || value == Color.Transparent)
+                if (value.IsEmpty || value == Color.Transparent)
                 {
-                    var a = FindForm();
-                    if (a != null)
+                    if (privateExplicitBackColor.HasValue)
                     {
-                        base.BackColor = a.BackColor;
+                        privateExplicitBackColor = null;
+                        Invalidate();
+                        OnBackColorChanged(EventArgs.Empty);
                     }
                 }
-                else
+                else if (privateExplicitBackColor != value)
                 {
-                    base.BackColor = value;
+                    privateExplicitBackColor = value;
+                    Invalidate();
+                    OnBackColorChanged(EventArgs.Empty);
                 }
+            }
+        }
+
+        private Color? privateExplicitBackColor = null;
+        private Control hookedParent = null;
+
+        public bool ShouldSerializeBackColor()
+        {
+            return privateExplicitBackColor.HasValue;
+        }
+
+        public new void ResetBackColor()
+        {
+            BackColor = Color.Empty;
+        }
+
+        private void HandleParentBackColorChanged(object sender, EventArgs e)
+        {
+            if (!privateExplicitBackColor.HasValue)
+            {
+                Invalidate();
+                OnBackColorChanged(EventArgs.Empty);
+            }
+        }
+
+        protected override void OnParentChanged(EventArgs e)
+        {
+            base.OnParentChanged(e);
+
+            if (hookedParent != null)
+            {
+                hookedParent.BackColorChanged -= HandleParentBackColorChanged;
+            }
+
+            hookedParent = Parent;
+
+            if (hookedParent != null)
+            {
+                hookedParent.BackColorChanged += HandleParentBackColorChanged;
+            }
+
+            if (!privateExplicitBackColor.HasValue)
+            {
+                Invalidate();
+                OnBackColorChanged(EventArgs.Empty);
             }
         }
 
