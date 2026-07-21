@@ -90,7 +90,7 @@ namespace HartUI.Controls
             Graphics g = e.Graphics;
 
             g.SmoothingMode = SmoothingMode.AntiAlias;
-            g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
+            g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
 
             //                   left,           top,                            right,          bottom
             Padding = new Padding(Rounding.Left, Rounding.Top + Font.Height - 2, Rounding.Right, Rounding.Bottom);

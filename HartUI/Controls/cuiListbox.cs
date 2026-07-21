@@ -301,7 +301,7 @@ namespace HartUI.Controls
         {
             Graphics g = e.Graphics;
             g.SmoothingMode = SmoothingMode.AntiAlias;
-            g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
+            g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
             e.Graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
 
             Rectangle cr = ClientRectangle;
@@ -352,7 +352,7 @@ namespace HartUI.Controls
                         itemRect.Inflate(-4, -2);
                         itemRect.Offset(0, 2);
 
-                        int yCenterString = itemRect.Y + (ItemHeight - Font.Height) / 2;
+                        int yCenterString = -2 + itemRect.Y + (ItemHeight - Font.Height) / 2;
                         string itemText = Items[i].ToString();
 
                         bool renderItemAsPreview = privateIsPreviewDragging

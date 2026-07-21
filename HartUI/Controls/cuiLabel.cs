@@ -26,13 +26,7 @@ namespace HartUI.Controls
             get => privateContent;
             set
             {
-                // allow newlines in text content (HartUI originally used regex unescape for this)
-                privateContent = (value ?? string.Empty)
-                    .Replace("\\r\\n", "\r\n")
-                    .Replace("\\n", "\n")
-                    .Replace("\\r", "\r")
-                    .Replace("\\t", "\t");
-
+                privateContent = value ?? string.Empty;
                 Invalidate();
             }
         }
@@ -40,7 +34,7 @@ namespace HartUI.Controls
         protected override void OnPaint(PaintEventArgs e)
         {
             e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-            e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
+            e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
             Rectangle cr = ClientRectangle;
 
             using (StringFormat stringFormat = new StringFormat() { Alignment = HorizontalAlignment, LineAlignment = VerticalAlignment })

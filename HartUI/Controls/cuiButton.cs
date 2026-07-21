@@ -477,7 +477,7 @@ namespace HartUI.Controls
         {
             e.Graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
             e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-            e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
+            e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
             Rectangle modifiedCR = ClientRectangle;
             modifiedCR.Width -= 1;
             modifiedCR.Height -= 1;
@@ -562,7 +562,7 @@ namespace HartUI.Controls
             roundBackground.Dispose();
 
             Rectangle textRectangle = ClientRectangle;
-            int textY = (Height / 2) - (Font.Height / 2);
+            int textY = (Height / 2) - (Font.Height / 2) - 1;
             textRectangle.Y = textY;
 
             Rectangle imageRectangle = textRectangle;
@@ -602,6 +602,8 @@ namespace HartUI.Controls
             {
                 textRectangle.X = startX;
             }
+
+            textRectangle.X += 2;
 
             using (SolidBrush brush = new SolidBrush(renderedForeColor))
             {

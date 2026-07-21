@@ -265,6 +265,7 @@ namespace HartUI.Controls
             symbolsOffset = new Point(0, 1);
 
             e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+            e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
 
             RectangleF squareClientRectangle = new RectangleF((OutlineThickness * 0.5f) + 0.6f, (OutlineThickness * 0.5f) + 0.6f, Height - OutlineThickness - 1.2f, Height - OutlineThickness - 1.2f);
 
@@ -336,8 +337,6 @@ namespace HartUI.Controls
                 using (StringFormat sf = new StringFormat() { LineAlignment = StringAlignment.Center })
                 using (SolidBrush brush = new SolidBrush(ForeColor))
                 {
-                    e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
-
                     textRect.Offset(textRect.Width + 4 + (OutlineThickness * 1.5f), -(OutlineThickness * 1.5f));
                     textRect.Width = Width;
                     textRect.Height = Height;

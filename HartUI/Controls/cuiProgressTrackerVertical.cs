@@ -218,7 +218,7 @@ namespace HartUI.Controls
             int longestStringWidthCompensation = (int)(e.Graphics.MeasureString(longestString, Font).Width + 0.5f);
 
             e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-            e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
+            e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
             e.Graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
 
             int WantedItemWidth = Width - 1 - longestStringWidthCompensation;
@@ -232,7 +232,7 @@ namespace HartUI.Controls
             int spacing = (Height - (ActualItemWidth * 2)) / (itemCount - 1); // Adjusted spacing
 
             Point currentItemPosition = new Point(HalfPenThickness, ActualItemWidth);
-            Point currentTextRectangle = new Point(ActualItemWidth + PenThicknessCompensation + 1, 0);
+            Point currentTextRectangle = new Point(ActualItemWidth + PenThicknessCompensation + 2, 0);
 
             using (StringFormat sf = new StringFormat { LineAlignment = StringAlignment.Center })
             using (Brush trackBrush = new SolidBrush(CompletedColor))
@@ -254,7 +254,7 @@ namespace HartUI.Controls
                 for (int i = 0; i < itemCount; i++)
                 {
                     currentItemPosition.Y = ActualItemWidth + (i * spacing) - (i * WantedItemWidth / Tasks.Length) - PenThicknessCompensation;
-                    currentTextRectangle.Y = currentItemPosition.Y + ((ActualItemWidth + 1) / 2) + 1;
+                    currentTextRectangle.Y = currentItemPosition.Y + ((ActualItemWidth + 1) / 2);
 
                     // current step
                     if (i == TasksProgress - 1)

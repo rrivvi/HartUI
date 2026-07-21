@@ -418,7 +418,7 @@ namespace HartUI.Controls
             var g = e.Graphics;
             g.Clear(BackColor);
             g.SmoothingMode = SmoothingMode.AntiAlias;
-            g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
+            g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
             e.Graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
 
             int tabsTotalWidth = GetTabsTotalWidth();
@@ -505,18 +505,20 @@ namespace HartUI.Controls
                         TabHeight
                     );
 
-                    TextRenderer.DrawText(
-                        g,
-                        title,
-                        Font,
-                        textRect,
-                        isSelected ? SelectedTextColor : isHover ? HoverTextColor : UnselectedTextColor,
-                        TextFormatFlags.SingleLine |
-                        TextFormatFlags.VerticalCenter |
-                        TextFormatFlags.Left |
-                        TextFormatFlags.EndEllipsis |
-                        TextFormatFlags.NoPadding
-                    );
+                    using (var sf = new StringFormat
+                    {
+                        Alignment = StringAlignment.Near,
+                        LineAlignment = StringAlignment.Center,
+                        Trimming = StringTrimming.EllipsisCharacter,
+                        FormatFlags = StringFormatFlags.NoWrap
+                    })
+                    {
+                        Color textColor = isSelected ? SelectedTextColor : isHover ? HoverTextColor : UnselectedTextColor;
+                        using (var textBrush = new SolidBrush(textColor))
+                        {
+                            g.DrawString(title, Font, textBrush, textRect, sf);
+                        }
+                    }
 
                     if (ShowDelete)
                     {
