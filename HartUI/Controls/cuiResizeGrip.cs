@@ -77,6 +77,7 @@ namespace HartUI.Controls
             dragTimer.Tick += DragTimer_Tick;
             Size = new Size(24, 24);
             Cursor = Cursors.SizeNWSE;
+            TabStop = false;
 
             Timer refreshTimer = new Timer();
             refreshTimer.Interval = 10000;

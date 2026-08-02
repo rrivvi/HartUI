@@ -52,7 +52,7 @@
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Update="Controls\cuiCheckbox.cs" />
-    <Compile Update="Controls\cuiProgressBarCircle.cs">
+    <Compile Update="Controls\cuiCircleProgressBar.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Update="Controls\cuiComboBox.cs">

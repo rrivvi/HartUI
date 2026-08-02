@@ -15,6 +15,7 @@ namespace HartUI.Controls
             InitializeComponent();
             SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.ResizeRedraw | ControlStyles.OptimizedDoubleBuffer, true);
             Size = new Size(480, 36);
+            TabStop = false;
         }
 
         private string[] tasks = new string[] { "Task1", "Task2", "Task3", "Task4" };

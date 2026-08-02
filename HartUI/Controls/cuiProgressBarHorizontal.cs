@@ -17,6 +17,7 @@ namespace HartUI.Controls
             DoubleBuffered = true;
             AutoScaleMode = AutoScaleMode.None;
             SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
+            TabStop = false;
         }
 
         private int privateValue = 50;

@@ -13,6 +13,7 @@ namespace HartUI.Controls
         {
             InitializeComponent();
             ForeColor = Color.FromArgb(128, 128, 128, 128);
+            TabStop = false;
         }
 
         [Category("HartUI")]

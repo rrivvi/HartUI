@@ -14,6 +14,7 @@ namespace HartUI.Controls
             InitializeComponent();
             Size = new Size(48, 48);
             SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
+            TabStop = false;
         }
 
         private int privateBorderWidth = 12;
