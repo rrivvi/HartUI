@@ -13,6 +13,7 @@ namespace HartUI.Helpers
         {
             PreloadedForms.TryPreloadForms();
             HandCursorFix.EnableModernCursor();
+            InputManager.TryInstallInputModalityFilter();
         }
 
         public static GraphicsPath RoundHexagon(Rectangle bounds, float rounding)
@@ -345,12 +346,16 @@ namespace HartUI.Helpers
             return new PointF(a.X + (b.X - a.X) * t, a.Y + (b.Y - a.Y) * t);
         }
 
-        public static GraphicsPath Star(float centerX, float centerY, float outerRadius, float innerRadius, float outerCornerRadius)
+        public static GraphicsPath Star(float centerX, float centerY, float outerRadius, float innerRadius, float outerCornerRadius, float scale = 1f)
         {
             if (outerCornerRadius < 0f)
             {
                 throw new ArgumentException("Corner radius cannot be negative.", nameof(outerCornerRadius));
             }
+
+            outerRadius *= scale;
+            innerRadius *= scale;
+            outerCornerRadius *= scale;
 
             const int numPoints = 5;
             float angleIncrement = 360f / numPoints;

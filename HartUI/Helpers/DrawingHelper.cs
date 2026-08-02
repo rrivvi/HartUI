@@ -21,6 +21,7 @@ namespace HartUI.Helpers
         {
             PreloadedForms.TryPreloadForms();
             HandCursorFix.EnableModernCursor();
+            InputManager.TryInstallInputModalityFilter();
             refreshRateTimer = new Timer();
             SetTimerRefreshRate();
         }

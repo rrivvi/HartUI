@@ -33,6 +33,7 @@ namespace HartUI.Controls
             InitializeComponent();
 
             DoubleBuffered = true;
+            TabStop = false;
 
             SetStyle(ControlStyles.UserPaint, true);
             SetStyle(ControlStyles.AllPaintingInWmPaint, true);

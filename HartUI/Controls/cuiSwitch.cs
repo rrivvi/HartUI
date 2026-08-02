@@ -1,4 +1,5 @@
 ﻿using HartUI.Helpers;
+using HartUI.Misc.Internal;
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -24,6 +25,8 @@ namespace HartUI.Controls
         private float thumbX;
 
         private bool animating;
+
+        bool showKeyboardFocus = InputManager.LastInputWasKeyboard;
 
         public cuiSwitch()
         {
@@ -232,6 +235,18 @@ namespace HartUI.Controls
                 e.Graphics.FillEllipse(thumbBrush, thumbRect);
             }
 
+            if (Focused && showKeyboardFocus)
+            {
+                Rectangle focusRect = ClientRectangle;
+                focusRect.Inflate(-1, -1);
+
+                using (GraphicsPath focusPath = GeneralHelper.RoundRect(focusRect, rounding))
+                using (Pen focusPen = new Pen(Checked ? CheckedBackground : DrawingHelper.PrimaryColor, 2))
+                {
+                    e.Graphics.DrawPath(focusPen, focusPath);
+                }
+            }
+
             base.OnPaint(e);
         }
 
@@ -253,6 +268,7 @@ namespace HartUI.Controls
         protected override void OnMouseDown(MouseEventArgs e)
         {
             base.OnMouseDown(e);
+            showKeyboardFocus = false;
             Focus();
         }
 
@@ -260,6 +276,47 @@ namespace HartUI.Controls
         {
             base.OnHandleCreated(e);
             StartAnimation(true);
+        }
+
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            base.OnKeyDown(e);
+
+            showKeyboardFocus = true;
+
+            if (e.KeyCode == Keys.Space || e.KeyCode == Keys.Enter)
+            {
+                if (!animating)
+                {
+                    Checked = !Checked;
+                }
+
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+            }
+        }
+
+        protected override void OnGotFocus(EventArgs e)
+        {
+            base.OnGotFocus(e);
+            showKeyboardFocus = InputManager.LastInputWasKeyboard;
+            Invalidate();
+        }
+
+        protected override void OnLostFocus(EventArgs e)
+        {
+            base.OnLostFocus(e);
+            Invalidate();
+        }
+
+        protected override bool IsInputKey(Keys keyData)
+        {
+            if (keyData == Keys.Space || keyData == Keys.Enter)
+            {
+                return true;
+            }
+
+            return base.IsInputKey(keyData);
         }
     }
 }
