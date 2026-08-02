@@ -15,6 +15,7 @@ namespace HartUI.Controls
         {
             InitializeComponent();
             SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer, true);
+            TabStop = false;
         }
 
         private Image privateContent = null;

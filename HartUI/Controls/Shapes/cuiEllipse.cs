@@ -8,6 +8,12 @@ namespace HartUI.Controls.Shapes
 {
     public partial class cuiEllipse : UserControl
     {
+        public cuiEllipse()
+        {
+            InitializeComponent();
+            TabStop = false;
+        }
+
         private Color privateOutlineColor = Color.Empty;
 
         [Category("HartUI")]
@@ -60,11 +66,6 @@ namespace HartUI.Controls.Shapes
         {
             base.OnResize(e);
             Invalidate();
-        }
-
-        public cuiEllipse()
-        {
-            InitializeComponent();
         }
 
         protected override void OnPaint(PaintEventArgs e)

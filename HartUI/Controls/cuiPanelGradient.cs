@@ -14,6 +14,7 @@ namespace HartUI.Controls
             InitializeComponent();
             DoubleBuffered = true;
             SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
+            TabStop = false;
         }
 
         protected override void OnResize(EventArgs eventargs)

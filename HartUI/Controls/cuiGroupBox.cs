@@ -14,6 +14,7 @@ namespace HartUI.Controls
             InitializeComponent();
             SetStyle(ControlStyles.UserPaint | ControlStyles.ResizeRedraw | ControlStyles.AllPaintingInWmPaint, true);
             Content = "Group Box";
+            TabStop = false;
         }
 
         private Padding privateRounding = new Padding(4);

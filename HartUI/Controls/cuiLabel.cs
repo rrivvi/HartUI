@@ -17,6 +17,7 @@ namespace HartUI.Controls
             AutoScaleMode = AutoScaleMode.None;
             SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
             SetStyle(ControlStyles.ResizeRedraw, true);
+            TabStop = false;
         }
 
         private string privateContent = "Your text here!";

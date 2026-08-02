@@ -12,6 +12,7 @@ namespace HartUI.Controls.Shapes
         public cuiHexagon()
         {
             InitializeComponent();
+            TabStop = false;
         }
 
         private Color privateOutlineColor = Color.Empty;
