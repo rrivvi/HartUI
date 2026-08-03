@@ -91,6 +91,8 @@ namespace HartUI.Controls
                     Content = Content.Substring(BoxAmount - 1);
                 }
 
+                focusedIndex = Math.Min(focusedIndex, BoxAmount);
+
                 Invalidate();
             }
         }
@@ -207,7 +209,7 @@ namespace HartUI.Controls
             }
         }
 
-        private int focusedIndex = -1;
+        private int focusedIndex = 0;
 
         private bool privateUnderlinedStyle = true;
 
@@ -240,6 +242,7 @@ namespace HartUI.Controls
             using (SolidBrush unfocusedText = new SolidBrush(UnfocusedTextColor))
             {
                 int currentPosition = 0;
+                int highlightIndex = Math.Min(focusedIndex, BoxAmount - 1);
 
                 for (int i = 0; i < BoxAmount; i++)
                 {
@@ -247,7 +250,7 @@ namespace HartUI.Controls
 
                     using (GraphicsPath gp = GeneralHelper.RoundRect(boxRectangle, Rounding))
                     {
-                        if (i == focusedIndex && Focused)
+                        if (i == highlightIndex && Focused)
                         {
                             using (SolidBrush focusedBrush = new SolidBrush(FocusedColor))
                             using (Pen focusedPen = new Pen(FocusedBorderColor))
@@ -352,6 +355,13 @@ namespace HartUI.Controls
             base.OnMouseMove(e);
         }
 
+        protected override void OnGotFocus(EventArgs e)
+        {
+            base.OnGotFocus(e);
+            focusedIndex = Math.Min(focusedIndex, Content.Length);
+            Invalidate();
+        }
+
         protected override void OnLostFocus(EventArgs e)
         {
             Invalidate();
@@ -362,140 +372,170 @@ namespace HartUI.Controls
         {
             // this time onmousedown is at the top, because we want to potentially redraw AFTER we got focus
             base.OnMouseDown(e);
+            Focus();
 
             int spacingBetweenBoxes = (Width - (Height * BoxAmount)) / (BoxAmount - 1);
             int boxSizeWithSpacingOffset = spacingBetweenBoxes + Height;
             int currentPosition = 0;
 
+            bool clickedInBox = false;
+
             for (int i = 0; i < BoxAmount; i++)
             {
                 var currentBoxRect = new Rectangle(currentPosition, 0, Height - 1, Height - 1);
 
-                bool cursorInCurrentBox = currentBoxRect.Contains(e.Location);
-                Cursor = cursorInCurrentBox ? Cursors.Arrow : Cursors.IBeam;
-                if (cursorInCurrentBox)
+                if (currentBoxRect.Contains(e.Location))
                 {
-                    if (focusedIndex != i)
-                    {
-                        if (i < Content.Length)
-                        {
-                            focusedIndex = i;
-                            Invalidate();
-                        }
-                        else
-                        {
-                            focusedIndex = Content.Length;
-                            Invalidate();
-                        }
-                    }
+                    clickedInBox = true;
+                    focusedIndex = i < Content.Length ? i : Content.Length;
+                    Invalidate();
+                    break;
                 }
 
                 currentPosition += boxSizeWithSpacingOffset;
+            }
+
+            if (!clickedInBox)
+            {
+                focusedIndex = Content.Length;
+                Invalidate();
             }
         }
 
         protected override void OnKeyDown(KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.Enter)
-            {
-                focusedIndex = BoxAmount;
-                Invalidate();
-                return;
-            }
+            base.OnKeyDown(e);
 
             if (!Focused)
             {
                 return;
             }
 
-            if (focusedIndex > BoxAmount - 1 && Content.Length < BoxAmount)
+            if (e.KeyCode == Keys.Left)
             {
-                focusedIndex = Content.Length;
+                focusedIndex = Math.Max(0, focusedIndex - 1);
+                Invalidate();
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+                return;
             }
 
-            if (e.Modifiers == Keys.Control && e.KeyCode == Keys.V)
+            if (e.KeyCode == Keys.Right)
+            {
+                focusedIndex = Math.Min(Content.Length, focusedIndex + 1);
+                Invalidate();
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+                return;
+            }
+
+            if (e.KeyCode == Keys.Home)
+            {
+                focusedIndex = 0;
+                Invalidate();
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+                return;
+            }
+
+            if (e.KeyCode == Keys.End)
+            {
+                focusedIndex = Content.Length;
+                Invalidate();
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+                return;
+            }
+
+            if (e.Control && e.KeyCode == Keys.V)
             {
                 string clipboardText = Clipboard.GetText();
-                if (clipboardText != null)
+                if (!string.IsNullOrEmpty(clipboardText))
                 {
-                    if (BoxAmount - Content.Length >= clipboardText.Length)
+                    char[] validChars = clipboardText
+                        .Where(c => char.IsLetterOrDigit(c) && (!OnlyDigit || char.IsDigit(c)))
+                        .Take(BoxAmount - focusedIndex)
+                        .ToArray();
+
+                    foreach (char c in validChars)
                     {
-                        foreach (char c in clipboardText)
-                        {
-                            OnKeyPress(new KeyPressEventArgs(c));
-                        }
-                    }
-                    else
-                    {
-                        char[] firstLetters = clipboardText
-                            .Where(c => char.IsLetterOrDigit(c) && (!OnlyDigit || char.IsDigit(c)))
-                            .Take(BoxAmount - Content.Length)
-                            .ToArray();
-                        foreach (char c in firstLetters)
-                        {
-                            OnKeyPress(new KeyPressEventArgs(c));
-                        }
+                        OnKeyPress(new KeyPressEventArgs(c));
                     }
                 }
+
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+                return;
+            }
+
+            if (e.KeyCode == Keys.Back)
+            {
+                if (focusedIndex > 0)
+                {
+                    int removeIndex = focusedIndex - 1;
+                    if (removeIndex < Content.Length)
+                    {
+                        Content = Content.Remove(removeIndex, 1);
+                    }
+                    focusedIndex--;
+                }
+
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+                return;
             }
 
             if (e.Modifiers != Keys.None && e.Modifiers != Keys.Shift)
             {
-                e.Handled = e.Modifiers != Keys.None;
+                e.Handled = true;
             }
-
-            if (e.KeyCode == Keys.Back && Content.Length > 0)
-            {
-                while (Content.Length < focusedIndex + 2)
-                {
-                    focusedIndex -= 1;
-                }
-
-                Content = Content.Substring(0, Content.Length - 1);
-            }
-
-            base.OnKeyDown(e);
         }
 
         protected override void OnKeyPress(KeyPressEventArgs e)
         {
-            try
+            if (!char.IsLetterOrDigit(e.KeyChar) || (OnlyDigit && !char.IsDigit(e.KeyChar)))
             {
-                if (!char.IsLetterOrDigit(e.KeyChar) || (OnlyDigit && !char.IsDigit(e.KeyChar)))
-                {
-                    e.Handled = true;
-                    return;
-                }
-
-                if (Content.Length > focusedIndex + 1)
-                {
-                    char[] chars = Content.ToCharArray();
-                    chars[focusedIndex] = char.ToUpper(e.KeyChar);
-                    focusedIndex++;
-                    Content = new string(chars);
-
-                    e.Handled = true;
-                    return;
-                }
-
-                if (Content.Length > BoxAmount)
-                {
-                    e.Handled = true;
-                    return;
-                }
-
-                while (Content.Length > focusedIndex - 1)
-                {
-                    focusedIndex++;
-                }
-
-                Content += char.ToUpper(e.KeyChar);
                 e.Handled = true;
-
-                base.OnKeyPress(e);
+                return;
             }
-            // chars like ;
-            catch (IndexOutOfRangeException) { }
+
+            if (focusedIndex >= BoxAmount)
+            {
+                e.Handled = true;
+                return;
+            }
+
+            char upper = char.ToUpper(e.KeyChar);
+
+            if (focusedIndex < Content.Length)
+            {
+                char[] chars = Content.ToCharArray();
+                chars[focusedIndex] = upper;
+                Content = new string(chars);
+            }
+            else
+            {
+                Content += upper;
+            }
+
+            focusedIndex = Math.Min(focusedIndex + 1, BoxAmount);
+
+            e.Handled = true;
+            base.OnKeyPress(e);
+        }
+
+        protected override bool IsInputKey(Keys keyData)
+        {
+            switch (keyData)
+            {
+                case Keys.Left:
+                case Keys.Right:
+                case Keys.Home:
+                case Keys.End:
+                    return true;
+            }
+
+            return base.IsInputKey(keyData);
         }
     }
 }
