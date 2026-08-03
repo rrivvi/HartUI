@@ -452,27 +452,38 @@ namespace HartUI.Controls
             {
                 if (fileList != null && fileList.Length > 0)
                 {
-                    string[] AllowedFileExtensions = GetExtensionsFromFilter();
-
-                    var validFiles = (AllowedFileExtensions.Length > 0
-                        ? fileList.Where(f => AllowedFileExtensions.Any(ext => f.EndsWith(ext, StringComparison.OrdinalIgnoreCase)))
-                        : fileList);
-
-                    // cuiFileDropper specific
-                    validFiles = validFiles.Where(f => !f.EndsWith("\\") && File.Exists(f));
-
-                    FileNames = validFiles.ToArray();
-                    FileName = FileNames[0];
-
-                    if (FileNames.Length > 1)
-                    {
-                        FileDropped?.Invoke(this, new FileDroppedEventArgs(FileNames));
-                    }
-                    else
-                    {
-                        FileDropped?.Invoke(this, new FileDroppedEventArgs(FileName));
-                    }
+                    HandleDroppedPaths(fileList);
                 }
+            }
+        }
+
+        protected virtual void HandleDroppedPaths(string[] paths)
+        {
+            string[] AllowedFileExtensions = GetExtensionsFromFilter();
+
+
+            var validFiles = (AllowedFileExtensions.Length > 0
+                ? paths.Where(f => AllowedFileExtensions.Any(ext => f.EndsWith(ext, StringComparison.OrdinalIgnoreCase)))
+                : paths);
+
+            // cuiFileDropper specific
+            validFiles = validFiles.Where(f => !f.EndsWith("\\") && File.Exists(f));
+
+            if (validFiles.Count() == 0)
+            {
+                return;
+            }
+
+            FileNames = validFiles.ToArray();
+            FileName = FileNames[0];
+
+            if (FileNames.Length > 1)
+            {
+                FileDropped?.Invoke(this, new FileDroppedEventArgs(FileNames));
+            }
+            else
+            {
+                FileDropped?.Invoke(this, new FileDroppedEventArgs(FileName));
             }
         }
 
@@ -493,7 +504,10 @@ namespace HartUI.Controls
             return extensions.Contains(".*") ? Array.Empty<string>() : extensions;
         }
 
+        [Category("HartUI")]
         public string FileName { get; private set; }
+
+        [Category("HartUI")]
         public string[] FileNames { get; private set; }
 
         protected override void OnMouseDown(MouseEventArgs e)
@@ -510,7 +524,7 @@ namespace HartUI.Controls
             PerformUpload();
         }
 
-        private void PerformUpload()
+        protected virtual void PerformUpload()
         {
             if (!UploadWithClick)
             {
