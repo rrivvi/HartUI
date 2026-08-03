@@ -11,3 +11,7 @@
 > In most cases, using **Find & Replace** to replace all mentions of `CuoreUI` with `HartUI` will work just fine
 4. cuiLabel's `Content` property changed: **Upon switching to HartUI, already-existing CuoreUI `cuiLabel` controls will have their spaces (` `) represented as preceding with a backslash `\ `**. This is due to not using Regex.Unescape(...) in `Content`'s setter. Update your cuiLabel controls' `Content` values. 
 > In most cases, using **Find & Replace** to replace all mentions of ` ` with `\ ` will work just fine, unless your project uses `\ ` somewhere else
+5. cuiCalendarDatePicker: The `Icon` and `IconTint` properties had their names changed to `Icon` and `NormalImageTint`/`HoverImageTint`/`PressedImageTint`. It now follows a consistent naming scheme (same as cuiButton and cuiButtonGroup), and has correct per-state colours. In case you gave your cuiCalendarDatePicker controls custom names, changes are probably going to be manual: Switching out mentions of `Icon` for `Image`.
+> Changes needed:
+> 1. Re-check the image tints (`IconTint` was separated into 3 state-dependent properties: `NormalImageTint`, `HoverImageTint` and `PressedImageTint`)** in the designer.cs files, and possibly your own code as well.
+> 2. Change mentions of your `cuiCalendarDatePicker`s' `Icon` to `Image`
