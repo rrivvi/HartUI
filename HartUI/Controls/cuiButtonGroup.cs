@@ -92,6 +92,22 @@ namespace HartUI.Controls
             Invalidate();
         }
 
+        protected override void OnKeyUp(KeyEventArgs e)
+        {
+            if ((e.KeyCode == Keys.Space || e.KeyCode == Keys.Enter) && state == ButtonStates.Pressed)
+            {
+                UpdateState(true, true);
+                ApplyDialogResult();
+                OnClick(EventArgs.Empty);
+
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+                return;
+            }
+
+            base.OnKeyUp(e);
+        }
+
         private void UpdateGroup()
         {
             var parentControls = Parent?.Controls;

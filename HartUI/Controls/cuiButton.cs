@@ -1,4 +1,5 @@
 ﻿using HartUI.Helpers;
+using HartUI.Misc.Internal;
 using System;
 using System.ComponentModel;
 using System.Drawing;
@@ -29,6 +30,8 @@ namespace HartUI.Controls
             SetStyle(ControlStyles.ResizeRedraw, true);
             Padding = new Padding(12);
         }
+
+        bool showKeyboardFocus = InputManager.LastInputWasKeyboard;
 
         public event EventHandler CheckedChanged;
 
@@ -561,6 +564,27 @@ namespace HartUI.Controls
             // because roundBackground is not inside an using statement, it needs to be diposed here
             roundBackground.Dispose();
 
+            if (Focused && showKeyboardFocus)
+            {
+                Rectangle focusRect = ClientRectangle;
+                focusRect.Inflate(-1, -1);
+                focusRect.Width -= 1;
+                focusRect.Height -= 1;
+
+                using (GraphicsPath focusPath = GeneralHelper.RoundRect(focusRect, Rounding))
+                {
+                    using (Pen insetBackgroundPen = new Pen(BackColor, 4))
+                    {
+                        e.Graphics.DrawPath(insetBackgroundPen, focusPath);
+                    }
+
+                    using (Pen focusPen = new Pen(Checked ? renderedBackgroundColor : renderedForeColor, 1))
+                    {
+                        e.Graphics.DrawPath(focusPen, focusPath);
+                    }
+                }
+            }
+
             Rectangle textRectangle = ClientRectangle;
             int textY = (Height / 2) - (Font.Height / 2) - 1;
             textRectangle.Y = textY;
@@ -781,12 +805,19 @@ namespace HartUI.Controls
         protected override void OnMouseDown(MouseEventArgs e)
         {
             state = ButtonStates.Pressed;
+            showKeyboardFocus = false;
             Focus();
             Invalidate();
             base.OnMouseDown(e);
         }
 
         protected override void OnMouseClick(MouseEventArgs e)
+        {
+            ApplyDialogResult();
+            base.OnMouseClick(e);
+        }
+
+        protected void ApplyDialogResult()
         {
             if (privateDialogResult != DialogResult.None)
             {
@@ -796,8 +827,6 @@ namespace HartUI.Controls
                     parentForm.DialogResult = privateDialogResult;
                 }
             }
-
-            base.OnMouseClick(e);
         }
 
         protected override void OnLostFocus(EventArgs e)
@@ -805,6 +834,70 @@ namespace HartUI.Controls
             state = ButtonStates.Normal;
             Invalidate();
             base.OnLostFocus(e);
+        }
+
+        protected override void OnGotFocus(EventArgs e)
+        {
+            base.OnGotFocus(e);
+            showKeyboardFocus = InputManager.LastInputWasKeyboard;
+            Invalidate();
+        }
+
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            base.OnKeyDown(e);
+
+            if (e.KeyCode == Keys.Escape)
+            {
+                showKeyboardFocus = false;
+                InvokeLostFocus(this, e);
+                return;
+            }
+
+            showKeyboardFocus = true;
+
+            if ((e.KeyCode == Keys.Space || e.KeyCode == Keys.Enter) && state != ButtonStates.Pressed)
+            {
+                state = ButtonStates.Pressed;
+                Invalidate();
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+            }
+        }
+
+        protected override void OnKeyUp(KeyEventArgs e)
+        {
+            base.OnKeyUp(e);
+
+            if (e.KeyCode == Keys.Space || e.KeyCode == Keys.Enter)
+            {
+                if (state == ButtonStates.Pressed)
+                {
+                    state = ButtonStates.Normal;
+                    Invalidate();
+
+                    if (CheckButton)
+                    {
+                        Checked = !Checked;
+                    }
+
+                    ApplyDialogResult();
+                    OnClick(EventArgs.Empty);
+                }
+
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+            }
+        }
+
+        protected override bool IsInputKey(Keys keyData)
+        {
+            if (keyData == Keys.Space || keyData == Keys.Enter)
+            {
+                return true;
+            }
+
+            return base.IsInputKey(keyData);
         }
 
         protected virtual void AdjustBackgroundRectangle(ref Rectangle rect) { }
