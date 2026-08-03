@@ -1,4 +1,5 @@
 ﻿using HartUI.Helpers;
+using HartUI.Misc.Internal;
 using System;
 using System.ComponentModel;
 using System.Drawing;
@@ -27,6 +28,8 @@ namespace HartUI.Controls
 
             Content = this.Name;
         }
+
+        bool showKeyboardFocus = InputManager.LastInputWasKeyboard;
 
         [Category("HartUI")]
         public event EventHandler CheckedChanged;
@@ -257,7 +260,52 @@ namespace HartUI.Controls
         protected override void OnMouseDown(MouseEventArgs e)
         {
             base.OnMouseDown(e);
+            showKeyboardFocus = false;
             Focus();
+        }
+
+        protected override void OnGotFocus(EventArgs e)
+        {
+            base.OnGotFocus(e);
+            showKeyboardFocus = InputManager.LastInputWasKeyboard;
+            Invalidate();
+        }
+
+        protected override void OnLostFocus(EventArgs e)
+        {
+            base.OnLostFocus(e);
+            Invalidate();
+        }
+
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            base.OnKeyDown(e);
+
+            if (e.KeyCode == Keys.Escape)
+            {
+                showKeyboardFocus = false;
+                InvokeLostFocus(this, e);
+                return;
+            }
+
+            showKeyboardFocus = true;
+
+            if (e.KeyCode == Keys.Space || e.KeyCode == Keys.Enter)
+            {
+                Checked = !Checked;
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+            }
+        }
+
+        protected override bool IsInputKey(Keys keyData)
+        {
+            if (keyData == Keys.Space || keyData == Keys.Enter)
+            {
+                return true;
+            }
+
+            return base.IsInputKey(keyData);
         }
 
         protected override void OnPaint(PaintEventArgs e)
@@ -330,6 +378,24 @@ namespace HartUI.Controls
                             checkmarkPen.StartCap = LineCap.Round;
                             checkmarkPen.EndCap = LineCap.Round;
                             e.Graphics.DrawPath(checkmarkPen, crossmark);
+                        }
+                    }
+
+                    if (Focused && showKeyboardFocus)
+                    {
+                        RectangleF focusRect = squareClientRectangle;
+
+                        using (GraphicsPath focusPath = GeneralHelper.RoundRect(focusRect, Rounding))
+                        {
+                            using (Pen insetBackgroundPen = new Pen(BackColor, 4))
+                            {
+                                e.Graphics.DrawPath(insetBackgroundPen, focusPath);
+                            }
+
+                            using (Pen focusPen = new Pen(CheckedForeground, 1))
+                            {
+                                e.Graphics.DrawPath(focusPen, focusPath);
+                            }
                         }
                     }
                 }
