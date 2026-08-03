@@ -26,11 +26,14 @@ namespace HartUI.Controls.Forms
 
         internal void ToggleThemeSwitchButton(bool value)
         {
+            cuiButton4.TabStop = value;
             cuiButton4.Visible = value;
         }
 
         YearDatePicker yearPickerControl;
         MonthDatePicker monthDayPickerControl;
+
+        bool isMonthDayPicker => pagePanel.Controls[0] == monthDayPickerControl;
 
         public DatePicker(DateTime startWithDateTime)
         {
@@ -213,6 +216,72 @@ namespace HartUI.Controls.Forms
             cuiButton3.HoverImageTint = cuiButton2.ForeColor;
             cuiButton2.PressedImageTint = cuiButton2.ForeColor;
             cuiButton3.PressedImageTint = cuiButton2.ForeColor;
+        }
+
+        private void cuiButton3_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
+        {
+            if (e.KeyCode == Keys.Tab || e.KeyCode == Keys.Down || e.KeyCode == Keys.Right)
+            {
+                ActiveControl = cuiButton5;
+                e.IsInputKey = true;
+            }
+            else if (e.KeyCode == Keys.Up)
+            {
+                ActiveControl = isMonthDayPicker
+                    ? monthDayPickerControl.leftMonthButton
+                    : yearPickerControl.leftYearButton;
+
+                e.IsInputKey = true;
+            }
+        }
+
+        private void cuiButton1_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
+        {
+            if (e.KeyCode == Keys.Tab || e.KeyCode == Keys.Right || e.KeyCode == Keys.Down)
+            {
+                ActiveControl = isMonthDayPicker
+                    ? monthDayPickerControl.SelectedDayButton
+                    : yearPickerControl.SelectedYearButton;
+
+                e.IsInputKey = true;
+            }
+        }
+
+        private void cuiButton2_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
+        {
+            if (e.KeyCode == Keys.Up)
+            {
+                ActiveControl = isMonthDayPicker
+                    ? monthDayPickerControl.SelectedDayButton
+                    : yearPickerControl.SelectedYearButton;
+
+                e.IsInputKey = true;
+            }
+            else if (e.KeyCode == Keys.Left)
+            {
+                ActiveControl = isMonthDayPicker
+                    ? monthDayPickerControl.rightMonthButton
+                    : yearPickerControl.rightYearButton;
+
+                e.IsInputKey = true;
+            }
+        }
+
+        private void cuiButton5_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
+        {
+            if (e.KeyCode == Keys.Up || e.KeyCode == Keys.Left)
+            {
+                ActiveControl = cuiButton3;
+                e.IsInputKey = true;
+            }
+            else if (e.KeyCode == Keys.Down)
+            {
+                ActiveControl = isMonthDayPicker
+                    ? monthDayPickerControl.SelectedDayButton
+                    : yearPickerControl.SelectedYearButton;
+
+                e.IsInputKey = true;
+            }
         }
     }
 }

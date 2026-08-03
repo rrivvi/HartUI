@@ -80,84 +80,77 @@
             this.sundayLabel.Content = "S";
             this.sundayLabel.Font = new System.Drawing.Font("Microsoft YaHei UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
             this.sundayLabel.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(128)))), ((int)(((byte)(128)))), ((int)(((byte)(128)))), ((int)(((byte)(128)))));
-            this.sundayLabel.HorizontalAlignment = System.Drawing.StringAlignment.Center;
             this.sundayLabel.Location = new System.Drawing.Point(0, 2);
             this.sundayLabel.Name = "sundayLabel";
             this.sundayLabel.Size = new System.Drawing.Size(41, 15);
             this.sundayLabel.TabIndex = 26;
-            this.sundayLabel.VerticalAlignment = System.Drawing.StringAlignment.Near;
+            this.sundayLabel.TabStop = false;
             // 
             // mondayLabel
             // 
             this.mondayLabel.Content = "S";
             this.mondayLabel.Font = new System.Drawing.Font("Microsoft YaHei UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
             this.mondayLabel.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(128)))), ((int)(((byte)(128)))), ((int)(((byte)(128)))), ((int)(((byte)(128)))));
-            this.mondayLabel.HorizontalAlignment = System.Drawing.StringAlignment.Center;
             this.mondayLabel.Location = new System.Drawing.Point(56, 2);
             this.mondayLabel.Name = "mondayLabel";
             this.mondayLabel.Size = new System.Drawing.Size(41, 15);
             this.mondayLabel.TabIndex = 28;
-            this.mondayLabel.VerticalAlignment = System.Drawing.StringAlignment.Near;
+            this.mondayLabel.TabStop = false;
             // 
             // wednesdayLabel
             // 
             this.wednesdayLabel.Content = "S";
             this.wednesdayLabel.Font = new System.Drawing.Font("Microsoft YaHei UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
             this.wednesdayLabel.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(128)))), ((int)(((byte)(128)))), ((int)(((byte)(128)))), ((int)(((byte)(128)))));
-            this.wednesdayLabel.HorizontalAlignment = System.Drawing.StringAlignment.Center;
             this.wednesdayLabel.Location = new System.Drawing.Point(168, 2);
             this.wednesdayLabel.Name = "wednesdayLabel";
             this.wednesdayLabel.Size = new System.Drawing.Size(41, 15);
             this.wednesdayLabel.TabIndex = 30;
-            this.wednesdayLabel.VerticalAlignment = System.Drawing.StringAlignment.Near;
+            this.wednesdayLabel.TabStop = false;
             // 
             // tuesdayLabel
             // 
             this.tuesdayLabel.Content = "S";
             this.tuesdayLabel.Font = new System.Drawing.Font("Microsoft YaHei UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
             this.tuesdayLabel.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(128)))), ((int)(((byte)(128)))), ((int)(((byte)(128)))), ((int)(((byte)(128)))));
-            this.tuesdayLabel.HorizontalAlignment = System.Drawing.StringAlignment.Center;
             this.tuesdayLabel.Location = new System.Drawing.Point(112, 2);
             this.tuesdayLabel.Name = "tuesdayLabel";
             this.tuesdayLabel.Size = new System.Drawing.Size(41, 15);
             this.tuesdayLabel.TabIndex = 29;
-            this.tuesdayLabel.VerticalAlignment = System.Drawing.StringAlignment.Near;
+            this.tuesdayLabel.TabStop = false;
             // 
             // fridayLabel
             // 
             this.fridayLabel.Content = "S";
             this.fridayLabel.Font = new System.Drawing.Font("Microsoft YaHei UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
             this.fridayLabel.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(128)))), ((int)(((byte)(128)))), ((int)(((byte)(128)))), ((int)(((byte)(128)))));
-            this.fridayLabel.HorizontalAlignment = System.Drawing.StringAlignment.Center;
             this.fridayLabel.Location = new System.Drawing.Point(281, 2);
             this.fridayLabel.Name = "fridayLabel";
             this.fridayLabel.Size = new System.Drawing.Size(41, 15);
             this.fridayLabel.TabIndex = 32;
-            this.fridayLabel.VerticalAlignment = System.Drawing.StringAlignment.Near;
+            this.fridayLabel.TabStop = false;
             // 
             // thursdayLabel
             // 
             this.thursdayLabel.Content = "S";
             this.thursdayLabel.Font = new System.Drawing.Font("Microsoft YaHei UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
             this.thursdayLabel.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(128)))), ((int)(((byte)(128)))), ((int)(((byte)(128)))), ((int)(((byte)(128)))));
-            this.thursdayLabel.HorizontalAlignment = System.Drawing.StringAlignment.Center;
             this.thursdayLabel.Location = new System.Drawing.Point(225, 2);
             this.thursdayLabel.Name = "thursdayLabel";
             this.thursdayLabel.Size = new System.Drawing.Size(41, 15);
             this.thursdayLabel.TabIndex = 31;
-            this.thursdayLabel.VerticalAlignment = System.Drawing.StringAlignment.Near;
+            this.thursdayLabel.TabStop = false;
             // 
             // saturdayLabel
             // 
             this.saturdayLabel.Content = "S";
             this.saturdayLabel.Font = new System.Drawing.Font("Microsoft YaHei UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
             this.saturdayLabel.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(128)))), ((int)(((byte)(128)))), ((int)(((byte)(128)))), ((int)(((byte)(128)))));
-            this.saturdayLabel.HorizontalAlignment = System.Drawing.StringAlignment.Center;
             this.saturdayLabel.Location = new System.Drawing.Point(336, 2);
             this.saturdayLabel.Name = "saturdayLabel";
             this.saturdayLabel.Size = new System.Drawing.Size(41, 15);
             this.saturdayLabel.TabIndex = 34;
-            this.saturdayLabel.VerticalAlignment = System.Drawing.StringAlignment.Near;
+            this.saturdayLabel.TabStop = false;
             // 
             // panel1
             // 
@@ -220,6 +213,7 @@
             this.button1.CheckedOutline = System.Drawing.Color.Empty;
             this.button1.Content = "1";
             this.button1.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.button1.DialogResult = System.Windows.Forms.DialogResult.None;
             this.button1.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F);
             this.button1.ForeColor = System.Drawing.Color.Gray;
             this.button1.Group = 0;
@@ -258,6 +252,7 @@
             this.button2.CheckedOutline = System.Drawing.Color.Empty;
             this.button2.Content = "2";
             this.button2.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.button2.DialogResult = System.Windows.Forms.DialogResult.None;
             this.button2.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F);
             this.button2.ForeColor = System.Drawing.Color.Gray;
             this.button2.Group = 0;
@@ -296,6 +291,7 @@
             this.button3.CheckedOutline = System.Drawing.Color.Empty;
             this.button3.Content = "3";
             this.button3.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.button3.DialogResult = System.Windows.Forms.DialogResult.None;
             this.button3.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F);
             this.button3.ForeColor = System.Drawing.Color.Gray;
             this.button3.Group = 0;
@@ -334,6 +330,7 @@
             this.button4.CheckedOutline = System.Drawing.Color.Empty;
             this.button4.Content = "4";
             this.button4.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.button4.DialogResult = System.Windows.Forms.DialogResult.None;
             this.button4.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F);
             this.button4.ForeColor = System.Drawing.Color.Gray;
             this.button4.Group = 0;
@@ -372,6 +369,7 @@
             this.button5.CheckedOutline = System.Drawing.Color.Empty;
             this.button5.Content = "5";
             this.button5.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.button5.DialogResult = System.Windows.Forms.DialogResult.None;
             this.button5.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F);
             this.button5.ForeColor = System.Drawing.Color.Gray;
             this.button5.Group = 0;
@@ -410,6 +408,7 @@
             this.button6.CheckedOutline = System.Drawing.Color.Empty;
             this.button6.Content = "6";
             this.button6.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.button6.DialogResult = System.Windows.Forms.DialogResult.None;
             this.button6.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F);
             this.button6.ForeColor = System.Drawing.Color.Gray;
             this.button6.Group = 0;
@@ -448,6 +447,7 @@
             this.button7.CheckedOutline = System.Drawing.Color.Empty;
             this.button7.Content = "7";
             this.button7.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.button7.DialogResult = System.Windows.Forms.DialogResult.None;
             this.button7.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F);
             this.button7.ForeColor = System.Drawing.Color.Gray;
             this.button7.Group = 0;
@@ -486,6 +486,7 @@
             this.button8.CheckedOutline = System.Drawing.Color.Empty;
             this.button8.Content = "8";
             this.button8.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.button8.DialogResult = System.Windows.Forms.DialogResult.None;
             this.button8.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F);
             this.button8.ForeColor = System.Drawing.Color.Gray;
             this.button8.Group = 0;
@@ -524,6 +525,7 @@
             this.button9.CheckedOutline = System.Drawing.Color.Empty;
             this.button9.Content = "9";
             this.button9.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.button9.DialogResult = System.Windows.Forms.DialogResult.None;
             this.button9.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F);
             this.button9.ForeColor = System.Drawing.Color.Gray;
             this.button9.Group = 0;
@@ -562,6 +564,7 @@
             this.button10.CheckedOutline = System.Drawing.Color.Empty;
             this.button10.Content = "10";
             this.button10.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.button10.DialogResult = System.Windows.Forms.DialogResult.None;
             this.button10.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F);
             this.button10.ForeColor = System.Drawing.Color.Gray;
             this.button10.Group = 0;
@@ -600,6 +603,7 @@
             this.button11.CheckedOutline = System.Drawing.Color.Empty;
             this.button11.Content = "11";
             this.button11.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.button11.DialogResult = System.Windows.Forms.DialogResult.None;
             this.button11.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F);
             this.button11.ForeColor = System.Drawing.Color.Gray;
             this.button11.Group = 0;
@@ -638,6 +642,7 @@
             this.button12.CheckedOutline = System.Drawing.Color.Empty;
             this.button12.Content = "12";
             this.button12.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.button12.DialogResult = System.Windows.Forms.DialogResult.None;
             this.button12.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F);
             this.button12.ForeColor = System.Drawing.Color.Gray;
             this.button12.Group = 0;
@@ -676,6 +681,7 @@
             this.button13.CheckedOutline = System.Drawing.Color.Empty;
             this.button13.Content = "13";
             this.button13.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.button13.DialogResult = System.Windows.Forms.DialogResult.None;
             this.button13.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F);
             this.button13.ForeColor = System.Drawing.Color.Gray;
             this.button13.Group = 0;
@@ -714,6 +720,7 @@
             this.button14.CheckedOutline = System.Drawing.Color.Empty;
             this.button14.Content = "14";
             this.button14.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.button14.DialogResult = System.Windows.Forms.DialogResult.None;
             this.button14.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F);
             this.button14.ForeColor = System.Drawing.Color.Gray;
             this.button14.Group = 0;
@@ -752,6 +759,7 @@
             this.button15.CheckedOutline = System.Drawing.Color.Empty;
             this.button15.Content = "15";
             this.button15.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.button15.DialogResult = System.Windows.Forms.DialogResult.None;
             this.button15.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F);
             this.button15.ForeColor = System.Drawing.Color.Gray;
             this.button15.Group = 0;
@@ -790,6 +798,7 @@
             this.button16.CheckedOutline = System.Drawing.Color.Empty;
             this.button16.Content = "16";
             this.button16.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.button16.DialogResult = System.Windows.Forms.DialogResult.None;
             this.button16.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F);
             this.button16.ForeColor = System.Drawing.Color.Gray;
             this.button16.Group = 0;
@@ -828,6 +837,7 @@
             this.button17.CheckedOutline = System.Drawing.Color.Empty;
             this.button17.Content = "17";
             this.button17.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.button17.DialogResult = System.Windows.Forms.DialogResult.None;
             this.button17.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F);
             this.button17.ForeColor = System.Drawing.Color.Gray;
             this.button17.Group = 0;
@@ -866,6 +876,7 @@
             this.button18.CheckedOutline = System.Drawing.Color.Empty;
             this.button18.Content = "18";
             this.button18.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.button18.DialogResult = System.Windows.Forms.DialogResult.None;
             this.button18.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F);
             this.button18.ForeColor = System.Drawing.Color.Gray;
             this.button18.Group = 0;
@@ -904,6 +915,7 @@
             this.button19.CheckedOutline = System.Drawing.Color.Empty;
             this.button19.Content = "19";
             this.button19.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.button19.DialogResult = System.Windows.Forms.DialogResult.None;
             this.button19.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F);
             this.button19.ForeColor = System.Drawing.Color.Gray;
             this.button19.Group = 0;
@@ -942,6 +954,7 @@
             this.button20.CheckedOutline = System.Drawing.Color.Empty;
             this.button20.Content = "20";
             this.button20.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.button20.DialogResult = System.Windows.Forms.DialogResult.None;
             this.button20.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F);
             this.button20.ForeColor = System.Drawing.Color.Gray;
             this.button20.Group = 0;
@@ -980,6 +993,7 @@
             this.button21.CheckedOutline = System.Drawing.Color.Empty;
             this.button21.Content = "21";
             this.button21.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.button21.DialogResult = System.Windows.Forms.DialogResult.None;
             this.button21.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F);
             this.button21.ForeColor = System.Drawing.Color.Gray;
             this.button21.Group = 0;
@@ -1018,6 +1032,7 @@
             this.button22.CheckedOutline = System.Drawing.Color.Empty;
             this.button22.Content = "22";
             this.button22.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.button22.DialogResult = System.Windows.Forms.DialogResult.None;
             this.button22.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F);
             this.button22.ForeColor = System.Drawing.Color.Gray;
             this.button22.Group = 0;
@@ -1056,6 +1071,7 @@
             this.button23.CheckedOutline = System.Drawing.Color.Empty;
             this.button23.Content = "23";
             this.button23.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.button23.DialogResult = System.Windows.Forms.DialogResult.None;
             this.button23.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F);
             this.button23.ForeColor = System.Drawing.Color.Gray;
             this.button23.Group = 0;
@@ -1094,6 +1110,7 @@
             this.button24.CheckedOutline = System.Drawing.Color.Empty;
             this.button24.Content = "24";
             this.button24.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.button24.DialogResult = System.Windows.Forms.DialogResult.None;
             this.button24.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F);
             this.button24.ForeColor = System.Drawing.Color.Gray;
             this.button24.Group = 0;
@@ -1132,6 +1149,7 @@
             this.button25.CheckedOutline = System.Drawing.Color.Empty;
             this.button25.Content = "25";
             this.button25.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.button25.DialogResult = System.Windows.Forms.DialogResult.None;
             this.button25.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F);
             this.button25.ForeColor = System.Drawing.Color.Gray;
             this.button25.Group = 0;
@@ -1170,6 +1188,7 @@
             this.button26.CheckedOutline = System.Drawing.Color.Empty;
             this.button26.Content = "26";
             this.button26.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.button26.DialogResult = System.Windows.Forms.DialogResult.None;
             this.button26.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F);
             this.button26.ForeColor = System.Drawing.Color.Gray;
             this.button26.Group = 0;
@@ -1208,6 +1227,7 @@
             this.button27.CheckedOutline = System.Drawing.Color.Empty;
             this.button27.Content = "27";
             this.button27.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.button27.DialogResult = System.Windows.Forms.DialogResult.None;
             this.button27.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F);
             this.button27.ForeColor = System.Drawing.Color.Gray;
             this.button27.Group = 0;
@@ -1246,6 +1266,7 @@
             this.button28.CheckedOutline = System.Drawing.Color.Empty;
             this.button28.Content = "28";
             this.button28.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.button28.DialogResult = System.Windows.Forms.DialogResult.None;
             this.button28.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F);
             this.button28.ForeColor = System.Drawing.Color.Gray;
             this.button28.Group = 0;
@@ -1284,6 +1305,7 @@
             this.button29.CheckedOutline = System.Drawing.Color.Empty;
             this.button29.Content = "29";
             this.button29.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.button29.DialogResult = System.Windows.Forms.DialogResult.None;
             this.button29.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F);
             this.button29.ForeColor = System.Drawing.Color.Gray;
             this.button29.Group = 0;
@@ -1322,6 +1344,7 @@
             this.button30.CheckedOutline = System.Drawing.Color.Empty;
             this.button30.Content = "30";
             this.button30.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.button30.DialogResult = System.Windows.Forms.DialogResult.None;
             this.button30.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F);
             this.button30.ForeColor = System.Drawing.Color.Gray;
             this.button30.Group = 0;
@@ -1360,6 +1383,7 @@
             this.button31.CheckedOutline = System.Drawing.Color.Empty;
             this.button31.Content = "31";
             this.button31.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.button31.DialogResult = System.Windows.Forms.DialogResult.None;
             this.button31.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F);
             this.button31.ForeColor = System.Drawing.Color.Gray;
             this.button31.Group = 0;
@@ -1402,17 +1426,17 @@
             this.rightMonthButton.Cursor = System.Windows.Forms.Cursors.Hand;
             this.rightMonthButton.DialogResult = System.Windows.Forms.DialogResult.None;
             this.rightMonthButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F);
-            this.rightMonthButton.ForeColor = System.Drawing.Color.White;
+            this.rightMonthButton.ForeColor = System.Drawing.Color.Gray;
             this.rightMonthButton.HoverBackground = System.Drawing.Color.Empty;
             this.rightMonthButton.HoverForeColor = System.Drawing.Color.Empty;
             this.rightMonthButton.HoverImageTint = System.Drawing.Color.Gray;
             this.rightMonthButton.HoverOutline = System.Drawing.Color.Empty;
             this.rightMonthButton.Image = ((System.Drawing.Image)(resources.GetObject("rightMonthButton.Image")));
             this.rightMonthButton.ImageExpand = new System.Drawing.Point(2, 2);
-            this.rightMonthButton.Location = new System.Drawing.Point(349, 167);
+            this.rightMonthButton.Location = new System.Drawing.Point(348, 167);
             this.rightMonthButton.Name = "rightMonthButton";
             this.rightMonthButton.NormalBackground = System.Drawing.Color.Empty;
-            this.rightMonthButton.NormalForeColor = System.Drawing.Color.White;
+            this.rightMonthButton.NormalForeColor = System.Drawing.Color.Gray;
             this.rightMonthButton.NormalImageTint = System.Drawing.Color.Gray;
             this.rightMonthButton.NormalOutline = System.Drawing.Color.Empty;
             this.rightMonthButton.OutlineThickness = 1.6F;
@@ -1423,11 +1447,12 @@
             this.rightMonthButton.PressedOutline = System.Drawing.Color.Empty;
             this.rightMonthButton.Rounding = new System.Windows.Forms.Padding(8);
             this.rightMonthButton.Size = new System.Drawing.Size(29, 29);
-            this.rightMonthButton.TabIndex = 44;
+            this.rightMonthButton.TabIndex = 46;
             this.rightMonthButton.TextAlignment = System.Drawing.StringAlignment.Center;
             this.rightMonthButton.TextPadding = 12;
             this.rightMonthButton.TextSpacing = 2;
             this.rightMonthButton.Click += new System.EventHandler(this.rightMonthButton_Click);
+            this.rightMonthButton.PreviewKeyDown += new System.Windows.Forms.PreviewKeyDownEventHandler(this.rightMonthButton_PreviewKeyDown);
             // 
             // leftMonthButton
             // 
@@ -1442,17 +1467,17 @@
             this.leftMonthButton.Cursor = System.Windows.Forms.Cursors.Hand;
             this.leftMonthButton.DialogResult = System.Windows.Forms.DialogResult.None;
             this.leftMonthButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F);
-            this.leftMonthButton.ForeColor = System.Drawing.Color.White;
+            this.leftMonthButton.ForeColor = System.Drawing.Color.Gray;
             this.leftMonthButton.HoverBackground = System.Drawing.Color.Empty;
             this.leftMonthButton.HoverForeColor = System.Drawing.Color.Empty;
             this.leftMonthButton.HoverImageTint = System.Drawing.Color.Gray;
             this.leftMonthButton.HoverOutline = System.Drawing.Color.Empty;
             this.leftMonthButton.Image = ((System.Drawing.Image)(resources.GetObject("leftMonthButton.Image")));
             this.leftMonthButton.ImageExpand = new System.Drawing.Point(2, 2);
-            this.leftMonthButton.Location = new System.Drawing.Point(314, 167);
+            this.leftMonthButton.Location = new System.Drawing.Point(313, 167);
             this.leftMonthButton.Name = "leftMonthButton";
             this.leftMonthButton.NormalBackground = System.Drawing.Color.Empty;
-            this.leftMonthButton.NormalForeColor = System.Drawing.Color.White;
+            this.leftMonthButton.NormalForeColor = System.Drawing.Color.Gray;
             this.leftMonthButton.NormalImageTint = System.Drawing.Color.Gray;
             this.leftMonthButton.NormalOutline = System.Drawing.Color.Empty;
             this.leftMonthButton.OutlineThickness = 1.6F;
@@ -1468,6 +1493,7 @@
             this.leftMonthButton.TextPadding = 12;
             this.leftMonthButton.TextSpacing = 2;
             this.leftMonthButton.Click += new System.EventHandler(this.leftMonthButton_Click);
+            this.leftMonthButton.PreviewKeyDown += new System.Windows.Forms.PreviewKeyDownEventHandler(this.leftMonthButton_PreviewKeyDown);
             // 
             // MonthDatePicker
             // 
@@ -1527,7 +1553,7 @@
         private cuiButtonGroup button9;
         private cuiButtonGroup button2;
         private cuiButtonGroup button31;
-        private cuiButton rightMonthButton;
-        private cuiButton leftMonthButton;
+        protected internal cuiButton rightMonthButton;
+        protected internal cuiButton leftMonthButton;
     }
 }

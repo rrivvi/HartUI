@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Drawing;
 using System.Globalization;
+using System.Linq;
+using System.Windows.Forms;
 
 namespace HartUI.Controls.Forms.Internal.DatePickerPages
 {
     internal partial class MonthDatePicker : System.Windows.Forms.UserControl
     {
         DatePicker _datePickerForm;
+
+        protected internal cuiButtonGroup SelectedDayButton => dayPanel.Controls.OfType<cuiButtonGroup>().FirstOrDefault(b => b.Checked);
 
         public MonthDatePicker(DatePicker datePickerForm)
         {
@@ -52,12 +56,91 @@ namespace HartUI.Controls.Forms.Internal.DatePickerPages
                 dayButton.Click -= DayButton_Click;
                 dayButton.Click += DayButton_Click;
 
+                dayButton.KeyDown -= DayButton_KeyDown;
+                dayButton.KeyDown += DayButton_KeyDown;
+                dayButton.PreviewKeyDown -= DayButton_PreviewKeyDown;
+                dayButton.PreviewKeyDown += DayButton_PreviewKeyDown;
+
                 currentColumn++;
                 if (currentColumn > 6)
                 {
                     currentColumn = 0;
                     currentRow++;
                 }
+            }
+        }
+
+        private void DayButton_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
+        {
+            if (e.KeyCode == Keys.Tab)
+            {
+                ActiveControl = leftMonthButton;
+                e.IsInputKey = true;
+            }
+            else if (e.KeyCode == Keys.Left || e.KeyCode == Keys.Right || e.KeyCode == Keys.Up || e.KeyCode == Keys.Down)
+            {
+                e.IsInputKey = true;
+            }
+        }
+
+        private void DayButton_KeyDown(object sender, KeyEventArgs e)
+        {
+            int delta;
+
+            switch (e.KeyCode)
+            {
+                case Keys.Left:
+                    delta = -1;
+                    break;
+                case Keys.Right:
+                    delta = 1;
+                    break;
+                case Keys.Up:
+                    delta = -7;
+                    break;
+                case Keys.Down:
+                    delta = 7;
+                    break;
+                default:
+                    return;
+            }
+
+            e.Handled = true;
+            e.SuppressKeyPress = true;
+            ChangeFocusedButtonBy(delta);
+        }
+
+        private void ChangeFocusedButtonBy(int delta)
+        {
+            cuiButtonGroup focused = dayPanel.Controls
+                .OfType<cuiButtonGroup>()
+                .FirstOrDefault(b => b.Focused);
+
+            if (focused == null)
+                return;
+
+            int targetDay = int.Parse(focused.Content) + delta;
+
+            cuiButtonGroup target = dayPanel.Controls
+                .OfType<cuiButtonGroup>()
+                .FirstOrDefault(b =>
+                    b.Visible &&
+                    int.Parse(b.Content) == targetDay);
+
+            if (target == null)
+            {
+                if (delta < 0)
+                {
+                    _datePickerForm.ActiveControl = _datePickerForm.cuiButton1;
+                }
+                else
+                {
+                    ActiveControl = leftMonthButton;
+                }
+            }
+            else
+            {
+                target.Focus();
             }
         }
 
@@ -102,6 +185,39 @@ namespace HartUI.Controls.Forms.Internal.DatePickerPages
                 _datePickerForm.SetDayMonth(_datePickerForm.Value.Day, wantedMonth);
             }
             UpdateDayButtons();
+        }
+
+        private void rightMonthButton_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
+        {
+            if (e.KeyCode == Keys.Tab || e.KeyCode == Keys.Right)
+            {
+                _datePickerForm.ActiveControl = _datePickerForm.cuiButton2;
+                e.IsInputKey = true;
+            }
+            else if (e.KeyCode == Keys.Down)
+            {
+                _datePickerForm.ActiveControl = _datePickerForm.cuiButton3;
+                e.IsInputKey = true;
+            }
+            else if (e.KeyCode == Keys.Up)
+            {
+                ActiveControl = SelectedDayButton;
+                e.IsInputKey = true;
+            }
+        }
+
+        private void leftMonthButton_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
+        {
+            if (e.KeyCode == Keys.Left || e.KeyCode == Keys.Up)
+            {
+                ActiveControl = SelectedDayButton;
+                e.IsInputKey = true;
+            }
+            else if (e.KeyCode == Keys.Down)
+            {
+                _datePickerForm.ActiveControl = _datePickerForm.cuiButton3;
+                e.IsInputKey = true;
+            }
         }
     }
 }
