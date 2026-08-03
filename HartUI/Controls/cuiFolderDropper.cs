@@ -1,4 +1,5 @@
 ﻿using HartUI.Helpers;
+using HartUI.Misc.Internal;
 using HartUI.Properties;
 using System;
 using System.ComponentModel;
@@ -17,6 +18,8 @@ namespace HartUI.Controls
     {
         private bool hover = false;
         private readonly StringFormat sf = new StringFormat() { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
+
+        bool showKeyboardFocus = InputManager.LastInputWasKeyboard;
 
         [Category("HartUI")]
         public bool Multiselect { get; set; } = false;
@@ -123,6 +126,9 @@ namespace HartUI.Controls
             Cursor = Cursors.Hand;
             Size = new Size(270, 135);
             SetStyle(ControlStyles.ResizeRedraw, true);
+            SetStyle(ControlStyles.UserPaint, true);
+            SetStyle(ControlStyles.AllPaintingInWmPaint, true);
+            SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
         }
 
         [Category("HartUI")]
@@ -220,6 +226,8 @@ namespace HartUI.Controls
                 float totalHeight = size1.Height + (line2 != null ? size2.Height : 0f);
                 float startY = modifiedCR.Top + (modifiedCR.Height - totalHeight) / 2;
 
+                RectangleF focusContentRect;
+
                 if (privateImage != null)
                 {
                     int imageHalfHeight = privateImageSize.Height / 2;
@@ -279,7 +287,13 @@ namespace HartUI.Controls
                                 size2.Height
                             );
                             e.Graphics.DrawString(line2, Font, uploadTextBrush, textRect2, sf);
+
+                            focusContentRect = GetFocusContentRect(imageRectangle, size1, size2, imageRectangle.Top, textRect2.Bottom);
                         }
+                    }
+                    else
+                    {
+                        focusContentRect = GetFocusContentRect(imageRectangle, size1, SizeF.Empty, imageRectangle.Top, textRect1.Bottom);
                     }
                 }
                 else
@@ -293,12 +307,38 @@ namespace HartUI.Controls
                         {
                             RectangleF textRect2 = new RectangleF(modifiedCR.Left, startY + size1.Height, modifiedCR.Width, size2.Height);
                             e.Graphics.DrawString(line2, Font, uploadTextBrush, textRect2, sf);
+
+                            focusContentRect = GetFocusContentRect(null, size1, size2, textRect1.Top, textRect2.Bottom);
                         }
+                    }
+                    else
+                    {
+                        focusContentRect = GetFocusContentRect(null, size1, SizeF.Empty, textRect1.Top, textRect1.Bottom);
+                    }
+                }
+
+                if (Focused && showKeyboardFocus)
+                {
+                    RectangleF focusRect = focusContentRect;
+                    focusRect.Inflate(4, 4);
+
+                    using (GraphicsPath focusPath = GeneralHelper.RoundRect(focusRect, new Padding(6)))
+                    using (Pen focusPen = new Pen(HoverUploadForeColor, 1))
+                    {
+                        e.Graphics.DrawPath(focusPen, focusPath);
                     }
                 }
             }
 
             base.OnPaint(e);
+        }
+
+        private RectangleF GetFocusContentRect(Rectangle? imageRectangle, SizeF size1, SizeF size2, float contentTop, float contentBottom)
+        {
+            float maxWidth = Math.Max(imageRectangle?.Width ?? 0, Math.Max(size1.Width, size2.Width));
+            float centerX = Width / 2f;
+
+            return new RectangleF(centerX - maxWidth / 2f, contentTop, maxWidth, contentBottom - contentTop);
         }
 
         protected override void OnDragEnter(DragEventArgs drgevent)
@@ -429,32 +469,84 @@ namespace HartUI.Controls
         [Category("HartUI")]
         public string[] FolderNames { get; private set; }
 
+        protected override void OnMouseDown(MouseEventArgs e)
+        {
+            base.OnMouseDown(e);
+            showKeyboardFocus = false;
+            Focus();
+        }
+
         protected override void OnMouseClick(MouseEventArgs e)
         {
             base.OnMouseClick(e);
 
-            if (UploadWithClick)
+            PerformUpload();
+        }
+
+        private void PerformUpload()
+        {
+            if (!UploadWithClick)
             {
-                bool MultiselectNow = Multiselect;
+                return;
+            }
 
-                using (OpenFolderDialog ofd = new OpenFolderDialog() { Multiselect = MultiselectNow })
+            bool MultiselectNow = Multiselect;
+
+            using (OpenFolderDialog ofd = new OpenFolderDialog() { Multiselect = MultiselectNow })
+            {
+                if (ofd.ShowDialog() == DialogResult.OK)
                 {
-                    if (ofd.ShowDialog() == DialogResult.OK)
-                    {
-                        FolderName = ofd.FolderName;
-                        FolderNames = ofd.FolderNames.ToArray();
+                    FolderName = ofd.FolderName;
+                    FolderNames = ofd.FolderNames.ToArray();
 
-                        if (MultiselectNow)
-                        {
-                            FolderDropped?.Invoke(null, new FolderDroppedEventArgs(FolderNames));
-                        }
-                        else
-                        {
-                            FolderDropped?.Invoke(null, new FolderDroppedEventArgs(FolderName));
-                        }
+                    if (MultiselectNow)
+                    {
+                        FolderDropped?.Invoke(null, new FolderDroppedEventArgs(FolderNames));
+                    }
+                    else
+                    {
+                        FolderDropped?.Invoke(null, new FolderDroppedEventArgs(FolderName));
                     }
                 }
             }
+        }
+
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            base.OnKeyDown(e);
+
+            showKeyboardFocus = true;
+
+            if (e.KeyCode == Keys.Space || e.KeyCode == Keys.Enter)
+            {
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+
+                PerformUpload();
+            }
+        }
+
+        protected override void OnGotFocus(EventArgs e)
+        {
+            base.OnGotFocus(e);
+            showKeyboardFocus = InputManager.LastInputWasKeyboard;
+            Invalidate();
+        }
+
+        protected override void OnLostFocus(EventArgs e)
+        {
+            base.OnLostFocus(e);
+            Invalidate();
+        }
+
+        protected override bool IsInputKey(Keys keyData)
+        {
+            if (keyData == Keys.Space || keyData == Keys.Enter)
+            {
+                return true;
+            }
+
+            return base.IsInputKey(keyData);
         }
 
         [Category("HartUI")]
