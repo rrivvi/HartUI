@@ -1,4 +1,5 @@
 ﻿using HartUI.Components;
+using HartUI.Misc.Internal;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -19,6 +20,9 @@ namespace HartUI.Controls.Forms.Internal
         int dragStartY = 0;
         int scrollStartOffset = 0;
 
+        internal int focusedIndex = -1;
+        bool showKeyboardFocus = false;
+
         // todo: expose these as properties
         internal int buttonHeight = 36;
         internal int buttonPadding = 6;
@@ -27,6 +31,8 @@ namespace HartUI.Controls.Forms.Internal
 
         protected override void OnMouseDown(MouseEventArgs e)
         {
+            showKeyboardFocus = false;
+
             var bar = GetScrollbarRect();
             if (bar.Contains(e.Location))
             {
@@ -34,6 +40,7 @@ namespace HartUI.Controls.Forms.Internal
                 dragStartY = e.Y;
                 scrollStartOffset = scrollOffset;
             }
+            Invalidate();
             base.OnMouseDown(e);
         }
 
@@ -45,6 +52,8 @@ namespace HartUI.Controls.Forms.Internal
 
         protected override void OnMouseMove(MouseEventArgs e)
         {
+            showKeyboardFocus = false;
+
             if (dragging)
             {
                 int maxScroll = GetMaxScroll();
@@ -116,6 +125,93 @@ namespace HartUI.Controls.Forms.Internal
 
         internal bool canShow = true;
 
+        protected override void OnGotFocus(EventArgs e)
+        {
+            base.OnGotFocus(e);
+            showKeyboardFocus = InputManager.LastInputWasKeyboard;
+            Invalidate();
+        }
+
+        protected override bool ProcessDialogKey(Keys keyData)
+        {
+            if (keyData == Keys.Up || keyData == Keys.Down || keyData == Keys.Enter || keyData == Keys.Escape)
+            {
+                HandleNavigationKey(keyData);
+                return true;
+            }
+
+            return base.ProcessDialogKey(keyData);
+        }
+
+        private void HandleNavigationKey(Keys keyCode)
+        {
+            if (keyCode == Keys.Escape)
+            {
+                showKeyboardFocus = false;
+                CloseDropDown();
+                return;
+            }
+
+            showKeyboardFocus = true;
+
+            switch (keyCode)
+            {
+                case Keys.Down:
+                    MoveFocusedIndex(1);
+                    break;
+
+                case Keys.Up:
+                    MoveFocusedIndex(-1);
+                    break;
+
+                case Keys.Enter:
+                    if (focusedIndex >= 0 && focusedIndex < Items.Count)
+                    {
+                        SelectedIndex = focusedIndex;
+                    }
+                    break;
+            }
+        }
+
+        private void MoveFocusedIndex(int delta)
+        {
+            if (Items.Count == 0)
+            {
+                return;
+            }
+
+            int newIndex = focusedIndex + delta;
+            newIndex = Math.Max(0, Math.Min(Items.Count - 1, newIndex));
+
+            if (newIndex == focusedIndex)
+            {
+                return;
+            }
+
+            focusedIndex = newIndex;
+            EnsureItemVisible(focusedIndex);
+            Invalidate();
+        }
+
+        private void EnsureItemVisible(int index)
+        {
+            int buttonOffsetSize = buttonHeight + buttonPadding - 2;
+            int itemTop = buttonPadding + index * buttonOffsetSize;
+            int itemBottom = itemTop + buttonHeight;
+            int maxScroll = GetMaxScroll();
+
+            if (itemTop - scrollOffset < 0)
+            {
+                scrollOffset = itemTop;
+            }
+            else if (itemBottom - scrollOffset > Height)
+            {
+                scrollOffset = itemBottom - Height;
+            }
+
+            scrollOffset = Math.Max(0, Math.Min(maxScroll, scrollOffset));
+        }
+
         protected override void OnMouseWheel(MouseEventArgs e)
         {
             int maxScroll = GetMaxScroll();
@@ -143,6 +239,7 @@ namespace HartUI.Controls.Forms.Internal
             Owner = attachToControl.FindForm();
             TargetControl = attachToControl;
             Items = comboBoxItems;
+            focusedIndex = (SelectedIndex >= 0 && SelectedIndex < Items.Count) ? SelectedIndex : (Items.Count > 0 ? 0 : -1);
 
             if (attachToControl is cuiComboBox ccb)
             {
@@ -161,6 +258,11 @@ namespace HartUI.Controls.Forms.Internal
             LostFocus += ComboBoxDropDownForm_LostFocus;
             VerifyScrollbarVisibility();
 
+            if (focusedIndex >= 0)
+            {
+                EnsureItemVisible(focusedIndex);
+            }
+
             return true;
         }
 
@@ -178,16 +280,27 @@ namespace HartUI.Controls.Forms.Internal
             Location = attachToControl.PointToScreen(Point.Empty) + new Size(-formPadding, attachToControl.Height + 2 - formPadding);
         }
 
-        private async void ComboBoxDropDownForm_LostFocus(object sender, System.EventArgs e)
+        private void ComboBoxDropDownForm_LostFocus(object sender, System.EventArgs e)
         {
+            CloseDropDown();
+        }
+
+        private async void CloseDropDown()
+        {
+            if (!Visible)
+            {
+                return;
+            }
+
+            LostFocus -= ComboBoxDropDownForm_LostFocus;
+
             if (formRounder != null)
             {
                 formRounder.roundedFormObj?.Hide();
             }
             Hide();
-            LostFocus -= ComboBoxDropDownForm_LostFocus;
 
-            // prevents accidents
+            // debounce to prevent immediate reopen
             await Task.Delay(250);
             canShow = true;
         }
@@ -247,6 +360,8 @@ namespace HartUI.Controls.Forms.Internal
 
                 if (itemRect.Contains(clickPoint))
                 {
+                    showKeyboardFocus = false;
+                    focusedIndex = i;
                     SelectedIndex = i;
                     break;
                 }
@@ -300,6 +415,25 @@ namespace HartUI.Controls.Forms.Internal
                         using (GraphicsPath selectedIndicatorPath = Helpers.GeneralHelper.RoundRect(selectedIndicator, new Padding(2)))
                         {
                             g.FillPath(Brushes.Gray, selectedIndicatorPath);
+                        }
+                    }
+                }
+
+                if (Focused && showKeyboardFocus && focusedIndex == i)
+                {
+                    Rectangle focusRect = itemRect;
+                    focusRect.Inflate(-1, -1);
+
+                    using (GraphicsPath focusPath = Helpers.GeneralHelper.RoundRect(focusRect, new Padding(8)))
+                    {
+                        using (Pen insetBackgroundPen = new Pen(BackColor, 4))
+                        {
+                            g.DrawPath(insetBackgroundPen, focusPath);
+                        }
+
+                        using (Pen focusPen = new Pen(ForeColor, 1))
+                        {
+                            g.DrawPath(focusPen, focusPath);
                         }
                     }
                 }

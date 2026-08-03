@@ -324,6 +324,27 @@ namespace HartUI.Controls
                 {
                     g.FillPath(arrowBrush, expandAvailable);
                 }
+
+                if (Focused && showKeyboardFocus)
+                {
+                    Rectangle focusRect = ClientRectangle;
+                    focusRect.Inflate(-1, -1);
+                    focusRect.Width -= 1;
+                    focusRect.Height -= 1;
+
+                    using (GraphicsPath focusPath = GeneralHelper.RoundRect(focusRect, Rounding))
+                    {
+                        using (Pen insetBackgroundPen = new Pen(BackColor, 4))
+                        {
+                            e.Graphics.DrawPath(insetBackgroundPen, focusPath);
+                        }
+
+                        using (Pen focusPen = new Pen(ForeColor, 1))
+                        {
+                            e.Graphics.DrawPath(focusPen, focusPath);
+                        }
+                    }
+                }
             }
 
             base.OnPaint(e);
@@ -357,6 +378,66 @@ namespace HartUI.Controls
             {
                 Invalidate();
             }
+        }
+
+        bool showKeyboardFocus = false;
+
+        protected override void OnLostFocus(EventArgs e)
+        {
+            Invalidate();
+            base.OnLostFocus(e);
+        }
+
+        protected override void OnGotFocus(EventArgs e)
+        {
+            base.OnGotFocus(e);
+            showKeyboardFocus = InputManager.LastInputWasKeyboard;
+            Invalidate();
+        }
+
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            base.OnKeyDown(e);
+
+            if (e.KeyCode == Keys.Escape)
+            {
+                showKeyboardFocus = false;
+                InvokeLostFocus(this, e);
+                return;
+            }
+
+            showKeyboardFocus = true;
+
+            if (e.KeyCode == Keys.Space || e.KeyCode == Keys.Enter)
+            {
+                Invalidate();
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+            }
+        }
+
+        protected override void OnKeyUp(KeyEventArgs e)
+        {
+            base.OnKeyUp(e);
+
+            if (e.KeyCode == Keys.Space || e.KeyCode == Keys.Enter)
+            {
+                Invalidate();
+                OnClick(EventArgs.Empty);
+
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+            }
+        }
+
+        protected override bool IsInputKey(Keys keyData)
+        {
+            if (keyData == Keys.Space || keyData == Keys.Enter)
+            {
+                return true;
+            }
+
+            return base.IsInputKey(keyData);
         }
     }
 }
