@@ -394,6 +394,17 @@ namespace HartUI.Controls
 
                             e.Graphics.FillEllipse(currentColorBrush, clickRectangle);
                         }
+
+                        whereClickPen1.Width = 4f;
+                        e.Graphics.DrawLine(whereClickPen1,
+                            p1hueSelectorPoint.X, p1hueSelectorPoint.Y,
+                            p2hueSelectorPoint.X, p2hueSelectorPoint.Y);
+
+                        whereClickPen1.Width = 3f;
+                        whereClickPen1.Color = Color.White;
+                        e.Graphics.DrawLine(whereClickPen1,
+                            p1hueSelectorPoint.X, p1hueSelectorPoint.Y,
+                            p2hueSelectorPoint.X, p2hueSelectorPoint.Y);
                     }
                 }
                 else
@@ -463,6 +474,211 @@ namespace HartUI.Controls
             }
 
             return base.ProcessDialogKey(keyData);
+        }
+
+        protected override bool IsInputKey(Keys keyData)
+        {
+            switch (keyData & Keys.KeyCode)
+            {
+                case Keys.Left:
+                case Keys.Right:
+                case Keys.Up:
+                case Keys.Down:
+                    return true;
+            }
+
+            return base.IsInputKey(keyData);
+        }
+
+        private const double HueKeyboardStep = 1.0;
+        private const double HueKeyboardStepFast = 10.0;
+        private const float TriangleKeyboardStep = 2f;
+        private const float TriangleKeyboardStepFast = 10f;
+
+        private bool leftDown;
+        private bool rightDown;
+        private bool upDown;
+        private bool downDown;
+
+        protected override void OnKeyUp(KeyEventArgs e)
+        {
+            base.OnKeyUp(e);
+
+            switch (e.KeyCode)
+            {
+                case Keys.Left:
+                    leftDown = false;
+                    break;
+                case Keys.Right:
+                    rightDown = false;
+                    break;
+                case Keys.Up:
+                    upDown = false;
+                    break;
+                case Keys.Down:
+                    downDown = false;
+                    break;
+            }
+        }
+
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            base.OnKeyDown(e);
+
+            if (e.Alt)
+            {
+                return;
+            }
+
+            bool isArrowKey = e.KeyCode == Keys.Left || e.KeyCode == Keys.Right
+                || e.KeyCode == Keys.Up || e.KeyCode == Keys.Down;
+
+            if (!isArrowKey)
+            {
+                return;
+            }
+
+            if (LastFocusedElement == FocusableElements.HueRing)
+            {
+                MoveHueByKeyboard(e);
+            }
+            else if (LastFocusedElement == FocusableElements.HsvTriangle)
+            {
+                switch (e.KeyCode)
+                {
+                    case Keys.Left:
+                        leftDown = true;
+                        break;
+                    case Keys.Right:
+                        rightDown = true;
+                        break;
+                    case Keys.Up:
+                        upDown = true;
+                        break;
+                    case Keys.Down:
+                        downDown = true;
+                        break;
+                    default:
+                        return;
+                }
+
+                MoveTriangleByKeyboard(e);
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+            }
+        }
+
+        private void MoveHueByKeyboard(KeyEventArgs e)
+        {
+            int direction;
+            switch (e.KeyCode)
+            {
+                case Keys.Left:
+                case Keys.Up:
+                    direction = -1;
+                    break;
+                case Keys.Right:
+                case Keys.Down:
+                    direction = 1;
+                    break;
+                default:
+                    return;
+            }
+
+            double step = e.Shift ? HueKeyboardStepFast : HueKeyboardStep;
+
+            double newHue = (privateHue + direction * step) % 360.0;
+            if (newHue < 0.0)
+            {
+                newHue += 360.0;
+            }
+
+            privateHue = newHue;
+            lastValidHue = newHue;
+
+            // regenerate because the triangle depends on hue
+            privateTriangleBitmap?.Dispose();
+            privateTriangleBitmap = null;
+
+            byte currentAlpha = Content.A;
+
+            // avoid Content setter recalculating hue
+            privateContent = ColorFromHSV(privateHue, privateSaturation, privateValue, currentAlpha);
+
+            ContentChanged?.Invoke(this, EventArgs.Empty);
+            SelectedColor?.Invoke(this, EventArgs.Empty);
+
+            Invalidate();
+
+            e.Handled = true;
+            e.SuppressKeyPress = true;
+        }
+
+        private void MoveTriangleByKeyboard(KeyEventArgs e)
+        {
+            float dx = 0f;
+            float dy = 0f;
+
+            if (leftDown) dx--;
+            if (rightDown) dx++;
+            if (upDown) dy--;
+            if (downDown) dy++;
+
+            if (dx == 0f && dy == 0f)
+                return;
+
+            // normalize diagonal
+            if (dx != 0f && dy != 0f)
+            {
+                const float invSqrt2 = 0.70710678f;
+                dx *= invSqrt2;
+                dy *= invSqrt2;
+            }
+
+            float step = e.Shift ? TriangleKeyboardStepFast : TriangleKeyboardStep;
+
+            EnsureGeometry();
+
+            PointF p1 = trianglePoints[0];
+            PointF p2 = trianglePoints[1];
+            PointF p3 = trianglePoints[2];
+
+            PointF current = new PointF(
+                clickRectangle.X + clickRectangle.Width / 2f,
+                clickRectangle.Y + clickRectangle.Height / 2f);
+
+            PointF candidate = new PointF(
+                current.X + dx * step,
+                current.Y + dy * step);
+
+            if (!PointInTriangle(candidate, p1, p2, p3))
+            {
+                candidate = ClosestPointOnTriangle(candidate, p1, p2, p3);
+            }
+
+            BarycentricCoords(candidate, p1, p2, p3, out float w1, out float w2, out float w3);
+
+            privateValue = w1 + w2;
+            privateSaturation = privateValue > 0.0 ? w1 / privateValue : 0.0;
+
+            clickRectangle.X = candidate.X - 4f;
+            clickRectangle.Y = candidate.Y - 4f;
+
+            byte currentAlpha = Content.A;
+
+            privateContent = ColorFromHSV(
+                privateHue,
+                privateSaturation,
+                privateValue,
+                currentAlpha);
+
+            ContentChanged?.Invoke(this, EventArgs.Empty);
+            SelectedColor?.Invoke(this, EventArgs.Empty);
+
+            Invalidate();
+
+            e.Handled = true;
+            e.SuppressKeyPress = true;
         }
 
         private PointF PointTowardsCenter(PointF inputPoint, float centerX, float centerY, double distance)
