@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HartUI.Misc.Internal;
+using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -257,6 +258,17 @@ namespace HartUI.Controls
         double privateSaturation = 0;
         double privateValue = 0;
 
+        private enum FocusableElements
+        {
+            None,
+            HueRing,
+            HsvTriangle
+        }
+
+        FocusableElements LastFocusedElement = FocusableElements.HsvTriangle;
+
+        bool showKeyboardFocus = InputManager.LastInputWasKeyboard;
+
         protected override void OnPaint(PaintEventArgs e)
         {
             // ensure triangle geometry is cached
@@ -273,8 +285,6 @@ namespace HartUI.Controls
             {
                 GenerateHueBitmap();
             }
-
-            e.Graphics.DrawImage(privateHueBitmap, x, y, size, size);
 
             // val/sat triangle
             if (privateTriangleBitmap == null || previouslyPaintedHue != privateHue)
@@ -299,6 +309,8 @@ namespace HartUI.Controls
                 EndCap = LineCap.Round
             })
             {
+                e.Graphics.DrawImage(privateHueBitmap, x, y, size, size);
+
                 Rectangle modifiedCR = ClientRectangle;
                 modifiedCR.Size = new Size(size, size);
                 modifiedCR.X = x;
@@ -340,22 +352,117 @@ namespace HartUI.Controls
 
                 e.Graphics.DrawEllipse(whereClickPen1, clickRectangle);
 
-                whereClickPen1.Width = 4f;
-                e.Graphics.DrawLine(whereClickPen1,
-                    p1hueSelectorPoint.X, p1hueSelectorPoint.Y,
-                    p2hueSelectorPoint.X, p2hueSelectorPoint.Y);
+                if (Focused && showKeyboardFocus)
+                {
+                    if (LastFocusedElement == FocusableElements.HueRing)
+                    {
+                        using (Pen currentColorPen = new Pen(Content, 3))
+                        {
+                            whereClickPen1.Width = 7;
+                            e.Graphics.DrawLine(whereClickPen1,
+                                p1hueSelectorPoint.X, p1hueSelectorPoint.Y,
+                                p2hueSelectorPoint.X, p2hueSelectorPoint.Y);
 
-                whereClickPen1.Width = 0.4f;
-                whereClickPen1.Color = Color.White;
-                e.Graphics.DrawEllipse(whereClickPen1, clickRectangle);
+                            whereClickPen1.Width = 0.4f;
+                            whereClickPen1.Color = Color.White;
+                            e.Graphics.DrawEllipse(whereClickPen1, clickRectangle);
 
-                whereClickPen1.Width = 3f;
-                e.Graphics.DrawLine(whereClickPen1,
-                    p1hueSelectorPoint.X, p1hueSelectorPoint.Y,
-                    p2hueSelectorPoint.X, p2hueSelectorPoint.Y);
+                            antialiasPen.Width = 6;
+                            antialiasPen.EndCap = LineCap.Round;
+                            antialiasPen.StartCap = LineCap.Round;
+                            e.Graphics.DrawLine(antialiasPen,
+                                p1hueSelectorPoint.X, p1hueSelectorPoint.Y,
+                                p2hueSelectorPoint.X, p2hueSelectorPoint.Y);
+
+                            currentColorPen.StartCap = LineCap.Round;
+                            currentColorPen.EndCap = LineCap.Round;
+
+                            e.Graphics.DrawLine(currentColorPen,
+                                p1hueSelectorPoint.X, p1hueSelectorPoint.Y,
+                                p2hueSelectorPoint.X, p2hueSelectorPoint.Y);
+                        }
+                    }
+                    else if (LastFocusedElement == FocusableElements.HsvTriangle)
+                    {
+                        using (SolidBrush currentColorBrush = new SolidBrush(Content))
+                        {
+                            whereClickPen1.Width = 3;
+                            e.Graphics.DrawEllipse(whereClickPen1, clickRectangle);
+
+                            antialiasPen.Width = 2;
+                            e.Graphics.DrawEllipse(antialiasPen, clickRectangle);
+
+                            e.Graphics.FillEllipse(currentColorBrush, clickRectangle);
+                        }
+                    }
+                }
+                else
+                {
+                    whereClickPen1.Width = 4f;
+                    e.Graphics.DrawLine(whereClickPen1,
+                        p1hueSelectorPoint.X, p1hueSelectorPoint.Y,
+                        p2hueSelectorPoint.X, p2hueSelectorPoint.Y);
+
+                    whereClickPen1.Width = 0.4f;
+                    whereClickPen1.Color = Color.White;
+                    e.Graphics.DrawEllipse(whereClickPen1, clickRectangle);
+
+                    whereClickPen1.Width = 3f;
+                    e.Graphics.DrawLine(whereClickPen1,
+                        p1hueSelectorPoint.X, p1hueSelectorPoint.Y,
+                        p2hueSelectorPoint.X, p2hueSelectorPoint.Y);
+                }
             }
 
             base.OnPaint(e);
+        }
+
+        override protected void OnGotFocus(EventArgs e)
+        {
+            base.OnGotFocus(e);
+            showKeyboardFocus = InputManager.LastInputWasKeyboard;
+
+            if (showKeyboardFocus)
+            {
+                // land on the triangle and not the ring when going back with tabstop
+                LastFocusedElement = (ModifierKeys & Keys.Shift) == Keys.Shift
+                    ? FocusableElements.HsvTriangle
+                    : FocusableElements.HueRing;
+            }
+
+            Invalidate();
+        }
+
+        protected override void OnLostFocus(EventArgs e)
+        {
+            base.OnLostFocus(e);
+            Invalidate();
+        }
+
+        protected override bool ProcessDialogKey(Keys keyData)
+        {
+            if (keyData == Keys.Tab || keyData == (Keys.Tab | Keys.Shift))
+            {
+                bool isShiftTab = keyData == (Keys.Tab | Keys.Shift);
+
+                // ring into triangle
+                if (!isShiftTab && LastFocusedElement == FocusableElements.HueRing)
+                {
+                    LastFocusedElement = FocusableElements.HsvTriangle;
+                    Invalidate();
+                    return true;
+                }
+
+                // triangle into ring
+                if (isShiftTab && LastFocusedElement == FocusableElements.HsvTriangle)
+                {
+                    LastFocusedElement = FocusableElements.HueRing;
+                    Invalidate();
+                    return true;
+                }
+            }
+
+            return base.ProcessDialogKey(keyData);
         }
 
         private PointF PointTowardsCenter(PointF inputPoint, float centerX, float centerY, double distance)
@@ -586,19 +693,24 @@ namespace HartUI.Controls
 
         protected override void OnMouseDown(MouseEventArgs e)
         {
+            showKeyboardFocus = false;
+
             if (IsInHueRing(e.Location))
             {
                 colorPickerState = ColorPickerStates.ChangingHue;
+                LastFocusedElement = FocusableElements.HueRing;
             }
             else if (IsInValueTriangle(e.Location))
             {
                 colorPickerState = ColorPickerStates.ChangingSatVal;
+                LastFocusedElement = FocusableElements.HsvTriangle;
             }
             else
             {
                 colorPickerState = ColorPickerStates.Idle;
             }
 
+            Focus();
             OnMouseMove(e);
         }
 
