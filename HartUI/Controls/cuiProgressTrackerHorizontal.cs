@@ -1,4 +1,4 @@
-﻿using HartUI.Helpers;
+using HartUI.Helpers;
 using System;
 using System.ComponentModel;
 using System.Drawing;
@@ -14,15 +14,17 @@ namespace HartUI.Controls
         {
             InitializeComponent();
             SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.ResizeRedraw | ControlStyles.OptimizedDoubleBuffer, true);
-            Size = new Size(480, 36);
+            Size = DefaultControlSize;
             TabStop = false;
         }
+
+        protected virtual Size DefaultControlSize => new Size(480, 36);
 
         private string[] tasks = new string[] { "Task1", "Task2", "Task3", "Task4" };
 
         [Category("HartUI")]
         [Description("Tasks in text separated by new lines.")]
-        public string[] Tasks
+        public virtual string[] Tasks
         {
             get => tasks;
             set
@@ -153,7 +155,7 @@ namespace HartUI.Controls
             }
         }
 
-        int privateRounding = 10;
+        protected int privateRounding = 10;
 
         [Category("HartUI")]
         public int Rounding
@@ -202,6 +204,15 @@ namespace HartUI.Controls
             }
         }
 
+        // vertical version overrides these
+        protected virtual int GetCrossExtent() => Height;
+        protected virtual int GetPrimaryExtent() => Width;
+        protected virtual int TextGap => 1;
+        // horizontal uses Alignment, vertical uses LineAlignment
+        protected virtual StringFormat CreateStringFormat() => new StringFormat { Alignment = StringAlignment.Center };
+        protected virtual Point MakePoint(int primary, int secondary) => new Point(primary, secondary);
+        protected virtual Rectangle MakeRect(int primary, int secondary, int size) => new Rectangle(primary, secondary, size, size);
+
         protected override void OnPaint(PaintEventArgs e)
         {
             if (Tasks.Length < 2)
@@ -209,24 +220,26 @@ namespace HartUI.Controls
                 return;
             }
 
-            e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
             e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
             e.Graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
 
-            int WantedItemHeight = Height - 1 - Font.Height;
+            int wantedItemSize = GetCrossExtent() - 1;
 
-            int PenThicknessCompensation = WantedItemHeight / 8;
-            int HalfPenThickness = PenThicknessCompensation / 2;
+            int penThicknessCompensation = wantedItemSize / 8;
+            int halfPenThickness = penThicknessCompensation / 2;
 
-            int ActualItemHeight = WantedItemHeight - PenThicknessCompensation;
+            int actualItemSize = wantedItemSize - penThicknessCompensation;
 
             int itemCount = Tasks.Length;
-            int spacing = (Width - (ActualItemHeight * 2)) / (itemCount - 1); // Adjusted spacing
+            int spacing = (GetPrimaryExtent() - (actualItemSize * 2)) / (itemCount - 1); // Adjusted spacing
 
-            Point currentItemPosition = new Point(ActualItemHeight, HalfPenThickness);
-            Point currentTextRectangle = new Point(0, ActualItemHeight + PenThicknessCompensation + 1);
+            int itemPrimary = actualItemSize;
+            int itemSecondary = halfPenThickness;
+            int textPrimary = 0;
+            int textSecondary = actualItemSize + penThicknessCompensation + TextGap;
 
-            using (StringFormat sf = new StringFormat { Alignment = StringAlignment.Center })
+            using (StringFormat sf = CreateStringFormat())
             using (Brush trackBrush = new SolidBrush(CompletedColor))
             using (Brush todoBrush = new SolidBrush(TrackColor))
             {
@@ -235,27 +248,25 @@ namespace HartUI.Controls
                 int tempRounding;
                 if (AutoRounding)
                 {
-                    tempRounding = ActualItemHeight / 2;
+                    tempRounding = actualItemSize / 2;
                 }
                 else
                 {
-                    tempRounding = Math.Min(ActualItemHeight / 2, privateRounding);
+                    tempRounding = Math.Min(actualItemSize / 2, privateRounding);
                 }
 
                 // draw tasks
                 for (int i = 0; i < itemCount; i++)
                 {
-                    currentItemPosition.X = ActualItemHeight + (i * spacing) - (i * WantedItemHeight / Tasks.Length) - PenThicknessCompensation;
-                    currentTextRectangle.X = currentItemPosition.X + ((ActualItemHeight + 1) / 2);
+                    itemPrimary = actualItemSize + (i * spacing) - (i * wantedItemSize / Tasks.Length) - penThicknessCompensation;
+                    textPrimary = itemPrimary + ((actualItemSize + 1) / 2);
 
                     // current step
                     if (i == TasksProgress - 1)
                     {
-                        RoundedItemPath = GeneralHelper.RoundRect(new Rectangle(
-                                currentItemPosition.X + (HalfPenThickness / 2) + 1,
-                                PenThicknessCompensation + 1,
-                                ActualItemHeight - HalfPenThickness - 2,
-                                ActualItemHeight - HalfPenThickness - 2), tempRounding - PenThicknessCompensation / 2 - 1);
+                        RoundedItemPath = GeneralHelper.RoundRect(
+                            MakeRect(itemPrimary + (halfPenThickness / 2) + 1, penThicknessCompensation + 1, actualItemSize - halfPenThickness - 2),
+                            tempRounding - penThicknessCompensation / 2 - 1);
 
                         using (Pen p = new Pen(CompletedColor, (LineThickness / 2) - 1))
                         {
@@ -264,14 +275,14 @@ namespace HartUI.Controls
 
                         using (SolidBrush textBrush = new SolidBrush(CurrentTaskForeColor))
                         {
-                            e.Graphics.DrawString(Tasks[i], Font, textBrush, currentTextRectangle, sf);
+                            e.Graphics.DrawString(Tasks[i], Font, textBrush, MakePoint(textPrimary, textSecondary), sf);
                         }
                     }
                     // completed steps
                     else if (i < TasksProgress)
                     {
                         // save rect for later in case drawing symbols
-                        Rectangle tempRect = new Rectangle(currentItemPosition.X, PenThicknessCompensation, ActualItemHeight, ActualItemHeight);
+                        Rectangle tempRect = MakeRect(itemPrimary, penThicknessCompensation, actualItemSize);
 
                         RoundedItemPath = GeneralHelper.RoundRect(tempRect, tempRounding);
                         e.Graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
@@ -281,9 +292,9 @@ namespace HartUI.Controls
                         if (ShowSymbols)
                         {
                             tempRect.Inflate(0, -1);
-                            tempRect.Inflate(-(ActualItemHeight / 10), -(ActualItemHeight / 10));
+                            tempRect.Inflate(-(actualItemSize / 10), -(actualItemSize / 10));
                             using (GraphicsPath checkmarkGP = GeneralHelper.Checkmark(tempRect))
-                            using (Pen p = new Pen(BackColor, ActualItemHeight / 8) { EndCap = LineCap.Round, StartCap = LineCap.Round })
+                            using (Pen p = new Pen(BackColor, actualItemSize / 8) { EndCap = LineCap.Round, StartCap = LineCap.Round })
                             {
                                 e.Graphics.DrawPath(p, checkmarkGP);
                             }
@@ -291,23 +302,21 @@ namespace HartUI.Controls
 
                         using (SolidBrush textBrush = new SolidBrush(TaskForeColor))
                         {
-                            e.Graphics.DrawString(Tasks[i], Font, textBrush, currentTextRectangle, sf);
+                            e.Graphics.DrawString(Tasks[i], Font, textBrush, MakePoint(textPrimary, textSecondary), sf);
                         }
                     }
                     // steps yet to be completed
                     else
                     {
-                        RoundedItemPath = GeneralHelper.RoundRect(new Rectangle(
-                            currentItemPosition.X,
-                            PenThicknessCompensation,
-                            ActualItemHeight,
-                            ActualItemHeight), tempRounding);
+                        RoundedItemPath = GeneralHelper.RoundRect(
+                            MakeRect(itemPrimary, penThicknessCompensation, actualItemSize),
+                            tempRounding);
 
                         e.Graphics.FillPath(todoBrush, RoundedItemPath);
 
                         using (SolidBrush textBrush = new SolidBrush(TaskForeColor))
                         {
-                            e.Graphics.DrawString(Tasks[i], Font, textBrush, currentTextRectangle, sf);
+                            e.Graphics.DrawString(Tasks[i], Font, textBrush, MakePoint(textPrimary, textSecondary), sf);
                         }
                     }
 
@@ -316,17 +325,17 @@ namespace HartUI.Controls
                     {
                         using (Pen p = new Pen(i < TasksProgress - 1 ? CompletedColor : TrackColor, (LineThickness / 2)) { StartCap = LineCap.Round, EndCap = LineCap.Round })
                         {
-                            Point ConnectPoint = currentItemPosition;
-                            ConnectPoint.Y += ((ActualItemHeight + PenThicknessCompensation + 1) / 2);
-                            ConnectPoint.X += PenThicknessCompensation + ActualItemHeight;
+                            int connectPrimary = itemPrimary;
+                            int connectSecondary = itemSecondary + ((actualItemSize + penThicknessCompensation + 1) / 2);
+                            connectPrimary += penThicknessCompensation + actualItemSize;
 
-                            Point ConnectPoint2 = ConnectPoint;
-                            ConnectPoint2.X = ConnectPoint.X + spacing - (WantedItemHeight / Tasks.Length) - WantedItemHeight - (PenThicknessCompensation * 2) + 1;
+                            int connect2Primary = connectPrimary + spacing - (wantedItemSize / Tasks.Length) - wantedItemSize - (penThicknessCompensation * 2) + 1;
+                            int connect2Secondary = connectSecondary;
 
-                            ConnectPoint.X += PenThicknessCompensation;
-                            ConnectPoint2.X -= PenThicknessCompensation;
+                            connectPrimary += penThicknessCompensation;
+                            connect2Primary -= penThicknessCompensation;
 
-                            e.Graphics.DrawLine(p, ConnectPoint, ConnectPoint2);
+                            e.Graphics.DrawLine(p, MakePoint(connectPrimary, connectSecondary), MakePoint(connect2Primary, connect2Secondary));
                         }
                     }
                 }
