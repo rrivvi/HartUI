@@ -1,7 +1,9 @@
 ﻿using HartUI.Controls;
 using HartUI.Helpers;
 using System;
+using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -118,7 +120,7 @@ namespace HartUI.Components.Forms
 
             dialog.Opacity = 0.01d;
             dialog.Location = new Point(1 - dialog.Width, 1 - dialog.Height);
-            dialog.Show(dimmer);
+            //dialog.Show(dimmer);
 
             RECT frameRect;
             DwmGetWindowAttribute(parent.Handle, DWMWA_EXTENDED_FRAME_BOUNDS, out frameRect, Marshal.SizeOf(typeof(RECT)));
@@ -182,13 +184,26 @@ namespace HartUI.Components.Forms
             }
 
             dimmer.Show();
+            dialog.Show();
+
+            // dimmer is a child window of the parent
+            // this line forces the dimmer to appear above the dimmer, but below the dialog as expected
+            // without this line, the dialog's corners would appear aliased / jagged
+            rounder.roundedFormObj.Owner = dimmer;
+
             dialog.Opacity = 1;
 
-            rounder.roundedFormObj.Owner = dimmer;
-            rounder.roundedFormObj.TopMost = true;
+            dialog.BeginInvoke(new Action(() =>
+            {
+                dialog.BringToFront();
+                dialog.Activate();
+                dialog.firstButton?.Focus();
+            }));
 
             return tcs.Task;
         }
+
+        private Control firstButton;
 
         private void ParentSizeChanged(object sender, EventArgs e)
         {
@@ -298,7 +313,9 @@ namespace HartUI.Components.Forms
                     Height = newSize;
                 }
 
-                void AddButton(string buttonText, DialogResult res)
+                List<cuiButton> addedButtons = new List<cuiButton>();
+
+                cuiButton AddButton(string buttonText, DialogResult res)
                 {
                     var btn = new cuiButton
                     {
@@ -314,27 +331,50 @@ namespace HartUI.Components.Forms
                         Size = buttonSize,
                         DialogResult = DialogResult.OK,
                     };
-                    btn.Click += (_, __) => { result = res; Close(); };
+
+                    btn.Click += (_, __) =>
+                    {
+                        result = res;
+                        Close();
+                    };
+
+                    btn.LostFocus += (_, __) =>
+                    {
+                        BeginInvoke(new Action(() =>
+                        {
+                            if (!addedButtons.Any(b => b.Focused))
+                                firstButton.Focus();
+                        }));
+                    };
+
                     buttonHolder.Controls.Add(btn);
+                    addedButtons.Add(btn);
+
+                    if (firstButton == null)
+                    {
+                        firstButton = btn;
+                    }
+
+                    return btn;
                 }
 
                 switch (buttons)
                 {
                     case MessageBoxButtons.OK:
-                        AddButton(OKText, DialogResult.OK);
+                        AddButton(OKText, DialogResult.OK).TabIndex = 1;
                         break;
                     case MessageBoxButtons.OKCancel:
-                        AddButton(CancelText, DialogResult.Cancel);
-                        AddButton(OKText, DialogResult.OK);
+                        AddButton(CancelText, DialogResult.Cancel).TabIndex = 2;
+                        AddButton(OKText, DialogResult.OK).TabIndex = 1;
                         break;
                     case MessageBoxButtons.YesNo:
-                        AddButton(NoText, DialogResult.No);
-                        AddButton(YesText, DialogResult.Yes);
+                        AddButton(NoText, DialogResult.No).TabIndex = 2;
+                        AddButton(YesText, DialogResult.Yes).TabIndex = 1;
                         break;
                     case MessageBoxButtons.YesNoCancel:
-                        AddButton(CancelText, DialogResult.Cancel);
-                        AddButton(NoText, DialogResult.No);
-                        AddButton(YesText, DialogResult.Yes);
+                        AddButton(CancelText, DialogResult.Cancel).TabIndex = 3;
+                        AddButton(NoText, DialogResult.No).TabIndex = 2;
+                        AddButton(YesText, DialogResult.Yes).TabIndex = 1;
                         break;
                 }
 

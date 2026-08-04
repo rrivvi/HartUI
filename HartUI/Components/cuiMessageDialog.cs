@@ -33,7 +33,7 @@ namespace HartUI.Components
 
         [Category("HartUI Dialog")]
         [Description("Height automatically adjusts if the text is too big.")]
-        public Size DialogSize { get; set; } = new Size(300, 200);
+        public Size DialogSize { get; set; } = new Size(314, 200); // 314 is the default because its the minimum width for all possible 3 buttons to fit
 
         [Category("HartUI Dialog")]
         [Description("How rounded should the dialog box be?")]
