@@ -1,4 +1,5 @@
 ﻿using HartUI.Helpers;
+using HartUI.Misc.Internal;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -12,6 +13,7 @@ namespace HartUI.Controls
     public partial class cuiTabControl : UserControl
     {
         private bool hoveringInteractive = false;
+        private bool showKeyboardFocus = InputManager.LastInputWasKeyboard;
         public List<TabPage> pages = new List<TabPage>();
         public IReadOnlyList<TabPage> Pages => pages;
         private int _selectedIndex = -1;
@@ -309,6 +311,10 @@ namespace HartUI.Controls
             var page = Pages[index];
             Controls.Add(page);
             _selectedIndex = index;
+
+            // modifying Controls loses focus, so restore it
+            Focus();
+
             SelectedTabChanged?.Invoke(this, EventArgs.Empty);
             Invalidate();
         }
@@ -465,6 +471,25 @@ namespace HartUI.Controls
                         g.FillPath(isSelected ? selectedBackgroundBrush :
                                       isHover ? hoverBackgroundBrush :
                                       unselectedBackgroundBrush, path);
+                    }
+
+                    if (isSelected && Focused && showKeyboardFocus)
+                    {
+                        Rectangle focusRect = tabRect;
+                        focusRect.Inflate(-1, -1);
+
+                        using (GraphicsPath focusPath = GeneralHelper.RoundRect(focusRect, Rounding))
+                        {
+                            using (Pen insetBackgroundPen = new Pen(BackColor, 4))
+                            {
+                                g.DrawPath(insetBackgroundPen, focusPath);
+                            }
+
+                            using (Pen focusPen = new Pen(SelectedTextColor, 1))
+                            {
+                                g.DrawPath(focusPen, focusPath);
+                            }
+                        }
                     }
 
                     int contentLeft = tabRect.Left + TabPadding;
@@ -633,27 +658,107 @@ namespace HartUI.Controls
 
         protected override bool IsInputKey(Keys keyData)
         {
-            return keyData is Keys.Left || keyData is Keys.Right || base.IsInputKey(keyData);
+            if (keyData == Keys.Left || keyData == Keys.Right ||
+                keyData == Keys.Up || keyData == Keys.Down)
+            {
+                return true;
+            }
+
+            return base.IsInputKey(keyData);
         }
 
         protected override void OnKeyDown(KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.Left)
+            if (e.KeyCode == Keys.Escape)
             {
-                scrollOffset -= ScrollSpeed;
-                Invalidate();
-            }
-            else if (e.KeyCode == Keys.Right)
-            {
-                scrollOffset += ScrollSpeed;
-                Invalidate();
+                showKeyboardFocus = false;
+                InvokeLostFocus(this, e);
+                return;
             }
 
-            base.OnKeyDown(e);
+            int direction;
+            if (e.KeyCode == Keys.Right || e.KeyCode == Keys.Down)
+            {
+                direction = 1;
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+            }
+            else if (e.KeyCode == Keys.Left || e.KeyCode == Keys.Up)
+            {
+                direction = -1;
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+            }
+            else
+            {
+                return;
+            }
+
+            if (Pages.Count == 0)
+            {
+                return;
+            }
+
+            showKeyboardFocus = true;
+
+            int newIndex = _selectedIndex + direction;
+            if (newIndex < 0 || newIndex >= Pages.Count)
+            {
+                return;
+            }
+
+            SelectTab(newIndex);
+            ScrollSelectedTabIntoView();
+            Invalidate();
+        }
+
+        // change scroll offset to tab button
+        private void ScrollSelectedTabIntoView()
+        {
+            if (_selectedIndex < 0 || _selectedIndex >= Pages.Count)
+            {
+                return;
+            }
+
+            int x = 0;
+            for (int i = 0; i < _selectedIndex; i++)
+            {
+                x += GetTabWidth(Pages[i]) + TabPadding;
+            }
+
+            int selectedTabWidth = GetTabWidth(Pages[_selectedIndex]);
+
+            if (x < scrollOffset)
+            {
+                scrollOffset = x;
+            }
+            else if (x + selectedTabWidth > scrollOffset + Width)
+            {
+                scrollOffset = x + selectedTabWidth - Width;
+            }
+
+            scrollOffset = Math.Max(0, scrollOffset);
+            scrollAlpha = 255;
+        }
+
+        protected override void OnGotFocus(EventArgs e)
+        {
+            base.OnGotFocus(e);
+            showKeyboardFocus = InputManager.LastInputWasKeyboard;
+            Invalidate();
+        }
+
+        protected override void OnLostFocus(EventArgs e)
+        {
+            base.OnLostFocus(e);
+            Invalidate();
         }
 
         private void tb_MouseDown(object sender, MouseEventArgs e)
         {
+            showKeyboardFocus = false;
+            Focus();
+
             int x = 0;
 
             for (int i = 0; i < Pages.Count; i++)
