@@ -1,4 +1,4 @@
-﻿using HartUI.Helpers;
+using HartUI.Helpers;
 using System;
 using System.ComponentModel;
 using System.Drawing;
@@ -103,7 +103,7 @@ namespace HartUI.Controls
         private int privateRounding = 8;
 
         [Category("HartUI")]
-        public int Rounding
+        public virtual int Rounding
         {
             get
             {
@@ -124,6 +124,17 @@ namespace HartUI.Controls
             }
         }
 
+        protected virtual RectangleF GetForegroundRect(float filledPercent)
+        {
+            float foreWidth = Flipped ? ClientRectangle.Width - (ClientRectangle.Width * filledPercent) : ClientRectangle.Width * filledPercent;
+            return new RectangleF(
+                Flipped ? ClientRectangle.Width - foreWidth : 0,
+                0,
+                foreWidth,
+                ClientRectangle.Height
+            );
+        }
+
         protected override void OnPaint(PaintEventArgs e)
         {
             e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
@@ -140,23 +151,17 @@ namespace HartUI.Controls
                     filledPercent = 1f - filledPercent;
                 }
 
-                float foreWidth = Flipped ? ClientRectangle.Width - (ClientRectangle.Width * filledPercent) : ClientRectangle.Width * filledPercent;
-                RectangleF foreHalf = new RectangleF(
-                    Flipped ? ClientRectangle.Width - foreWidth : 0,
-                    0,
-                    foreWidth,
-                    ClientRectangle.Height
-                );
+                RectangleF foreRect = GetForegroundRect(filledPercent);
 
                 using (SolidBrush brush = new SolidBrush(Background))
                 {
                     e.Graphics.FillPath(brush, roundBackground);
                 }
 
-                if (foreWidth > 0)
+                if (foreRect.Width > 0 && foreRect.Height > 0)
                 {
                     using (GraphicsPath graphicsPath = GeneralHelper.RoundRect(
-                        new Rectangle((int)foreHalf.X, (int)foreHalf.Y, (int)Math.Ceiling(foreHalf.Width), (int)Math.Ceiling(foreHalf.Height)),
+                        new Rectangle((int)foreRect.X, (int)foreRect.Y, (int)Math.Ceiling(foreRect.Width), (int)Math.Ceiling(foreRect.Height)),
                         Rounding))
                     using (SolidBrush brush = new SolidBrush(Foreground))
                     {
