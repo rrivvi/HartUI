@@ -247,24 +247,8 @@ namespace HartUI.Controls
                     );
                     e.Graphics.DrawImage(privateImage, imageRectangle);
 
-                    float tintR = ImageTint.R / 255f;
-                    float tintG = ImageTint.G / 255f;
-                    float tintB = ImageTint.B / 255f;
-                    float tintA = ImageTint.A / 255f;
-
-                    ColorMatrix colorMatrix = new ColorMatrix(new float[][]
+                    using (ImageAttributes imageAttributes = DrawingHelper.Imaging.CreateTintImageAttributes(ImageTint))
                     {
-        new float[] {tintR, 0, 0, 0, 0},
-        new float[] {0, tintG, 0, 0, 0},
-        new float[] {0, 0, tintB, 0, 0},
-        new float[] {0, 0, 0, tintA, 0},
-        new float[] {0, 0, 0, 0, 1}
-                    });
-
-                    using (ImageAttributes imageAttributes = new ImageAttributes())
-                    {
-                        imageAttributes.SetColorMatrix(colorMatrix);
-
                         e.Graphics.DrawImage(
                             privateImage,
                             imageRectangle,

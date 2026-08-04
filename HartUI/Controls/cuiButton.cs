@@ -639,39 +639,17 @@ namespace HartUI.Controls
                 if (renderedTint == Color.White)
                 {
                     e.Graphics.DrawImage(
-                    privateImage,
-                    imageRectangle,
-                    0, 0, privateImage.Width, privateImage.Height,
-                    GraphicsUnit.Pixel);
+                        privateImage,
+                        imageRectangle,
+                        0, 0, privateImage.Width, privateImage.Height,
+                        GraphicsUnit.Pixel);
                 }
                 else
                 {
-                    if (colorMatrix == null || renderedTint != lastImageTint)
+                    if (imageAttributes == null || renderedTint != lastImageTint)
                     {
-                        float tintR = renderedTint.R / 255f;
-                        float tintG = renderedTint.G / 255f;
-                        float tintB = renderedTint.B / 255f;
-                        float tintA = renderedTint.A / 255f;
-
-                        // Create a color matrix that will apply the tint color
-                        colorMatrix = new ColorMatrix(new float[][]
-                        {
-            new float[] {tintR, 0, 0, 0, 0},
-            new float[] {0, tintG, 0, 0, 0},
-            new float[] {0, 0, tintB, 0, 0},
-            new float[] {0, 0, 0, tintA, 0},
-            new float[] {0, 0, 0, 0, 1}
-                        });
-                    }
-
-                    if (renderedTint != lastImageTint)
-                    {
-                        if (imageAttributes == null)
-                        {
-                            imageAttributes = new ImageAttributes();
-                        }
-
-                        imageAttributes.SetColorMatrix(colorMatrix);
+                        imageAttributes?.Dispose();
+                        imageAttributes = DrawingHelper.Imaging.CreateTintImageAttributes(renderedTint);
                     }
 
                     // Draw the image with the tint

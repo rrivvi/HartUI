@@ -154,46 +154,25 @@ namespace HartUI.Helpers
 
         public static class Imaging
         {
-            public static Bitmap TintBitmap(Bitmap originalBitmap, Color tintColor)
+            public static ImageAttributes CreateTintImageAttributes(Color tintColor)
             {
-                if (originalBitmap == null)
+                float r = tintColor.R / 255f;
+                float g = tintColor.G / 255f;
+                float b = tintColor.B / 255f;
+                float a = tintColor.A / 255f;
+
+                ColorMatrix colorMatrix = new ColorMatrix(new float[][]
                 {
-                    return null;
-                }
+                    new float[] { r, 0, 0, 0, 0 },
+                    new float[] { 0, g, 0, 0, 0 },
+                    new float[] { 0, 0, b, 0, 0 },
+                    new float[] { 0, 0, 0, a, 0 },
+                    new float[] { 0, 0, 0, 0, 1 }
+                });
 
-                Bitmap tintedBitmap = new Bitmap(originalBitmap.Width, originalBitmap.Height);
-
-                using (Graphics graphics = Graphics.FromImage(tintedBitmap))
-                {
-                    graphics.SmoothingMode = SmoothingMode.AntiAlias;
-                    graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                    graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
-
-                    float r = tintColor.R / 255f;
-                    float g = tintColor.G / 255f;
-                    float b = tintColor.B / 255f;
-                    float a = tintColor.A / 255f;
-
-                    ColorMatrix colorMatrix = new ColorMatrix(new float[][]
-                    {
-                    new float[]{ r, 0, 0, 0, 0 },
-                      new float[]{0, g, 0, 0, 0 },
-                      new float[]{0, 0, b, 0, 0 },
-                      new float[]{0, 0, 0, a, 0 },
-                      new float[]{0, 0, 0, 0, 1 }
-                    });
-
-                    using (ImageAttributes imageAttributes = new ImageAttributes())
-                    {
-                        imageAttributes.SetColorMatrix(colorMatrix, ColorMatrixFlag.Default, ColorAdjustType.Bitmap);
-
-                        graphics.DrawImage(originalBitmap, new Rectangle(0, 0, originalBitmap.Width, originalBitmap.Height),
-                                    0, 0, originalBitmap.Width, originalBitmap.Height,
-                                    GraphicsUnit.Pixel, imageAttributes);
-                    }
-                }
-
-                return tintedBitmap;
+                ImageAttributes imageAttributes = new ImageAttributes();
+                imageAttributes.SetColorMatrix(colorMatrix, ColorMatrixFlag.Default, ColorAdjustType.Bitmap);
+                return imageAttributes;
             }
 
             public static class ImageBlurs

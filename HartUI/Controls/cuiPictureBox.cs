@@ -126,24 +126,8 @@ namespace HartUI.Controls
             cachedImage = new Bitmap(privateContent.Width, privateContent.Height);
 
             using (Graphics g = Graphics.FromImage(cachedImage))
-            using (ImageAttributes attr = new ImageAttributes())
+            using (ImageAttributes attr = DrawingHelper.Imaging.CreateTintImageAttributes(ImageTint))
             {
-                float r = ImageTint.R / 255f;
-                float gC = ImageTint.G / 255f;
-                float b = ImageTint.B / 255f;
-                float a = ImageTint.A / 255f;
-
-                var matrix = new ColorMatrix(new float[][]
-                {
-                    new float[] {r, 0, 0, 0, 0},
-                    new float[] {0, gC, 0, 0, 0},
-                    new float[] {0, 0, b, 0, 0},
-                    new float[] {0, 0, 0, a, 0},
-                    new float[] {0, 0, 0, 0, 1}
-                });
-
-                attr.SetColorMatrix(matrix);
-
                 g.DrawImage(privateContent,
                     new Rectangle(0, 0, cachedImage.Width, cachedImage.Height),
                     0, 0, privateContent.Width, privateContent.Height,

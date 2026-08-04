@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.Windows.Forms;
 
 namespace HartUI.Controls
@@ -502,24 +503,29 @@ namespace HartUI.Controls
 
                     if (currentPage.Image != null)
                     {
-                        using (Bitmap currentImage = DrawingHelper.Imaging.TintBitmap(
-                            currentPage.Image,
-                            isSelected ? SelectedImageTint :
-                            isHover ? HoverImageTint :
-                            UnselectedImageTint))
+                        Color tint = isSelected ? SelectedImageTint :
+                                     isHover ? HoverImageTint :
+                                     UnselectedImageTint;
+
+                        int imageSize = GetImageDrawSize();
+                        Rectangle imageRect = new Rectangle(
+                            contentLeft,
+                            tabRect.Top + (TabHeight - imageSize) / 2,
+                            imageSize,
+                            imageSize
+                        );
+
+                        using (ImageAttributes imageAttributes = DrawingHelper.Imaging.CreateTintImageAttributes(tint))
                         {
-                            int imageSize = GetImageDrawSize();
-                            Rectangle imageRect = new Rectangle(
-                                contentLeft,
-                                tabRect.Top + (TabHeight - imageSize) / 2,
-                                imageSize,
-                                imageSize
-                            );
-
-                            g.DrawImage(currentImage, imageRect);
-
-                            contentLeft += imageSize + 4;
+                            g.DrawImage(
+                                currentPage.Image,
+                                imageRect,
+                                0, 0, currentPage.Image.Width, currentPage.Image.Height,
+                                GraphicsUnit.Pixel,
+                                imageAttributes);
                         }
+
+                        contentLeft += imageSize + 4;
                     }
 
                     string title = currentPage.Title ?? string.Empty;

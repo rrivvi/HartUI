@@ -539,27 +539,8 @@ namespace HartUI.Controls
                 imageRectangle.Inflate(ImageExpand.X, ImageExpand.Y);
                 imageRectangle.Offset(privateImageOffset);
 
-                float tintR = renderedTint.R / 255f;
-                float tintG = renderedTint.G / 255f;
-                float tintB = renderedTint.B / 255f;
-                float tintA = renderedTint.A / 255f;
-
-                // Create a color matrix that will apply the tint color
-                ColorMatrix colorMatrix = new ColorMatrix(new float[][]
+                using (ImageAttributes imageAttributes = DrawingHelper.Imaging.CreateTintImageAttributes(renderedTint))
                 {
-            new float[] {tintR, 0, 0, 0, 0},
-            new float[] {0, tintG, 0, 0, 0},
-            new float[] {0, 0, tintB, 0, 0},
-            new float[] {0, 0, 0, tintA, 0},
-            new float[] {0, 0, 0, 0, 1}
-                });
-
-                // Create image attributes and set the color matrix
-                using (ImageAttributes imageAttributes = new ImageAttributes())
-                {
-                    imageAttributes.SetColorMatrix(colorMatrix);
-
-                    // Draw the image with the tint
                     e.Graphics.DrawImage(
                         privateImage,
                         imageRectangle,
