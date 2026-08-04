@@ -70,6 +70,24 @@ namespace HartUI.Controls.Forms.Internal
             base.OnMouseMove(e);
         }
 
+        protected override void OnPreviewKeyDown(PreviewKeyDownEventArgs e)
+        {
+            if (e.KeyCode == Keys.Escape)
+            {
+                showKeyboardFocus = false;
+
+                // calling CloseDropDown() here would cause the dropdown to close
+                // but the focus would not return to the target control.
+                // changing SelectedIndex doesn't do that
+                // (cuiComboBox attaches to this and has its own logic)
+                SelectedIndex = SelectedIndex;
+                e.IsInputKey = true;
+                return;
+            }
+
+            base.OnPreviewKeyDown(e);
+        }
+
         int GetContentHeight()
         {
             int buttonOffsetSize = buttonHeight + buttonPadding - 2;
@@ -145,13 +163,6 @@ namespace HartUI.Controls.Forms.Internal
 
         private void HandleNavigationKey(Keys keyCode)
         {
-            if (keyCode == Keys.Escape)
-            {
-                showKeyboardFocus = false;
-                CloseDropDown();
-                return;
-            }
-
             showKeyboardFocus = true;
 
             switch (keyCode)

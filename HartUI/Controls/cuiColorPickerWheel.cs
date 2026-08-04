@@ -454,6 +454,9 @@ namespace HartUI.Controls
         {
             if (keyData == Keys.Tab || keyData == (Keys.Tab | Keys.Shift))
             {
+                // show focus when the user presses Keys.Escape but then tabs back into the control
+                showKeyboardFocus = true;
+
                 bool isShiftTab = keyData == (Keys.Tab | Keys.Shift);
 
                 // ring into triangle
@@ -527,6 +530,13 @@ namespace HartUI.Controls
 
             if (e.Alt)
             {
+                return;
+            }
+
+            if (e.KeyCode == Keys.Escape)
+            {
+                showKeyboardFocus = false;
+                InvokeLostFocus(this, e);
                 return;
             }
 
