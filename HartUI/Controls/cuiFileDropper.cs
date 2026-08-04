@@ -554,6 +554,13 @@ namespace HartUI.Controls
         {
             base.OnKeyDown(e);
 
+            if (e.KeyCode == Keys.Escape)
+            {
+                showKeyboardFocus = false;
+                InvokeLostFocus(this, e);
+                return;
+            }
+
             showKeyboardFocus = true;
 
             if (e.KeyCode == Keys.Space || e.KeyCode == Keys.Enter)
