@@ -1,4 +1,5 @@
 ﻿using HartUI.Helpers;
+using HartUI.Misc.Internal;
 using System;
 using System.ComponentModel;
 using System.Drawing;
@@ -25,6 +26,9 @@ namespace HartUI.Controls.Charts
         private bool showPopup = false;
         private PointF popupLocation;
         private string popupText;
+
+        private int focusedPointIndex = -1;
+        bool showKeyboardFocus = InputManager.LastInputWasKeyboard;
 
         protected override void OnResize(EventArgs e)
         {
@@ -584,6 +588,116 @@ namespace HartUI.Controls.Charts
                     Invalidate(roundedRegion);
                 }
             }
+        }
+
+        private void ShowPopupForFocusedPoint()
+        {
+            var data = privateDataPoints;
+            int count = data?.Length ?? 0;
+
+            if (count == 0 || privateMaxValue <= 0)
+            {
+                return;
+            }
+
+            focusedPointIndex = Math.Max(0, Math.Min(count - 1, focusedPointIndex));
+
+            int chartWidth = ClientSize.Width - chartPadding * 2;
+            int chartHeight = ClientSize.Height - chartPadding * 2;
+            int lastIndex = count - 1;
+            float yScale = chartHeight / privateMaxValue;
+
+            float x = chartPadding + (lastIndex == 0 ? 0f : (focusedPointIndex * (float)chartWidth / lastIndex));
+            float y = chartPadding + chartHeight - (data[focusedPointIndex] * yScale);
+
+            var newLocation = new PointF(x, y);
+            string newText = usePercent ? $"{data[focusedPointIndex]}%" : data[focusedPointIndex].ToString();
+
+            if (showPopup)
+            {
+                InvalidatePopupRegion();
+            }
+
+            popupLocation = newLocation;
+            popupText = newText;
+            showPopup = true;
+
+            InvalidatePopupRegion();
+        }
+
+        protected override void OnMouseDown(MouseEventArgs e)
+        {
+            base.OnMouseDown(e);
+            showKeyboardFocus = false;
+            Focus();
+        }
+
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            base.OnKeyDown(e);
+
+            showKeyboardFocus = true;
+
+            int count = privateDataPoints?.Length ?? 0;
+            if (count == 0)
+            {
+                return;
+            }
+
+            if (e.KeyCode == Keys.Left)
+            {
+                focusedPointIndex = Math.Max(0, focusedPointIndex - 1);
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+                ShowPopupForFocusedPoint();
+            }
+            else if (e.KeyCode == Keys.Right)
+            {
+                focusedPointIndex = Math.Min(count - 1, focusedPointIndex + 1);
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+                ShowPopupForFocusedPoint();
+            }
+        }
+
+        protected override void OnGotFocus(EventArgs e)
+        {
+            base.OnGotFocus(e);
+
+            showKeyboardFocus = InputManager.LastInputWasKeyboard;
+
+            int count = privateDataPoints?.Length ?? 0;
+
+            if (showKeyboardFocus && count > 0)
+            {
+                // not yet focused on any point, so focus on last point
+                if (focusedPointIndex == -1)
+                {
+                    focusedPointIndex = count - 1;
+                }
+                ShowPopupForFocusedPoint();
+            }
+        }
+
+        protected override void OnLostFocus(EventArgs e)
+        {
+            base.OnLostFocus(e);
+
+            if (showKeyboardFocus && showPopup)
+            {
+                showPopup = false;
+                InvalidatePopupRegion();
+            }
+        }
+
+        protected override bool IsInputKey(Keys keyData)
+        {
+            if (keyData == Keys.Left || keyData == Keys.Right)
+            {
+                return true;
+            }
+
+            return base.IsInputKey(keyData);
         }
     }
 }
