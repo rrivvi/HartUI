@@ -13,8 +13,8 @@ namespace HartUI.Components.Forms
     internal partial class MessageDialog : Form
     {
         public Color DimColor { get; set; } = Color.FromArgb(160, 0, 0, 0);
-        public Size ButtonSize { get; set; } = new Size(80, 32);
         public Padding DialogPadding { get; set; } = new Padding(20);
+        public Color[] ButtonColors { get; set; }
 
         private DialogResult result = DialogResult.None;
 
@@ -22,7 +22,8 @@ namespace HartUI.Components.Forms
         private Form dimmerForm;
         private Form dialogForm;
 
-        public int Rounding { get; set; }
+        public Padding Rounding { get; set; }
+        public int DialogRounding { get; set; }
 
         public string OKText = "OK";
         public string YesText = "Yes";
@@ -70,7 +71,7 @@ namespace HartUI.Components.Forms
 
             string[] buttonsText = { OKText, YesText, NoText, CancelText };
 
-            var dialog = new MessageDialog(text, title, buttons, parent, targetSize, buttonsText, buttonSize)
+            var dialog = new MessageDialog(text, title, buttons, parent, targetSize, buttonsText, buttonSize, ButtonColors, Rounding)
             {
                 BackColor = this.BackColor,
                 ForeColor = this.ForeColor,
@@ -94,6 +95,7 @@ namespace HartUI.Components.Forms
                 cuiFormRounder rounderFound = FormsRegisteredByRounder.GetRounderByForm(parent);
                 rounderExists = rounderFound != null;
 
+                // Environment.OSVersion.Version is unreliable
                 bool automaticallyFindRounding = WindowsHelper.IsWindows11() == false || rounderExists;
                 dimmerRounding = parentBorderStyleBefore == FormBorderStyle.None ? 0 : 8;
                 if (automaticallyFindRounding)
@@ -105,11 +107,10 @@ namespace HartUI.Components.Forms
                 }
             }
 
-            // Environment.OSVersion.Version is unreliable
             var rounder = new cuiFormRounder
             {
                 TargetForm = dialog,
-                Rounding = Rounding
+                Rounding = DialogRounding
             };
             var rounder2 = new cuiFormRounder
             {
@@ -258,7 +259,7 @@ namespace HartUI.Components.Forms
 
         //
 
-        private MessageDialog(string text, string title, MessageBoxButtons buttons, Form parent, Size targetSize, string[] buttonsText, Size buttonSize)
+        private MessageDialog(string text, string title, MessageBoxButtons buttons, Form parent, Size targetSize, string[] buttonsText, Size buttonSize, Color[] buttonColors, Padding buttonRounding)
         {
             SuspendLayout();
 
@@ -319,13 +320,19 @@ namespace HartUI.Components.Forms
                 {
                     var btn = new cuiButton
                     {
-                        NormalBackground = Color.Transparent,
-                        HoverBackground = Color.Transparent,
-                        PressedBackground = Color.Transparent,
+                        NormalBackground = buttonColors[0],
+                        HoverBackground = buttonColors[1],
+                        PressedBackground = buttonColors[2],
 
-                        NormalForeColor = Color.Gray,
-                        HoverForeColor = Color.Gray,
-                        PressedForeColor = Color.FromArgb(128, Color.Gray),
+                        NormalOutline = buttonColors[3],
+                        HoverOutline = buttonColors[4],
+                        PressedOutline = buttonColors[5],
+
+                        NormalForeColor = buttonColors[6],
+                        HoverForeColor = buttonColors[7],
+                        PressedForeColor = buttonColors[8],
+
+                        Rounding = buttonRounding,
 
                         Content = buttonText,
                         Size = buttonSize,

@@ -31,13 +31,43 @@ namespace HartUI.Components
         [Category("HartUI Dialog Colors")]
         public Color ForeColor { get; set; } = Color.Black;
 
+        [Category("HartUI Button Appearance")]
+        public Padding Rounding { get; set; } = new Padding(8, 8, 8, 8);
+
+        [Category("HartUI Button Colors - Normal")]
+        public Color NormalBackground { get; set; } = Color.White;
+
+        [Category("HartUI Button Colors - Hover")]
+        public Color HoverBackground { get; set; } = Color.White;
+
+        [Category("HartUI Button Colors - Pressed")]
+        public Color PressedBackground { get; set; } = Color.WhiteSmoke;
+
+        [Category("HartUI Button Colors - Normal")]
+        public Color NormalOutline { get; set; } = Color.FromArgb(64, 128, 128, 128);
+
+        [Category("HartUI Button Colors - Hover")]
+        public Color HoverOutline { get; set; } = Color.FromArgb(32, 128, 128, 128);
+
+        [Category("HartUI Button Colors - Pressed")]
+        public Color PressedOutline { get; set; } = Color.FromArgb(64, 128, 128, 128);
+
+        [Category("HartUI Button Colors - Pressed")]
+        public Color PressedForeColor { get; set; } = Color.FromArgb(32, 32, 32);
+
+        [Category("HartUI Button Colors - Normal")]
+        public Color NormalForeColor { get; set; } = Color.Black;
+
+        [Category("HartUI Button Colors - Hover")]
+        public Color HoverForeColor { get; set; } = Color.DimGray;
+
         [Category("HartUI Dialog")]
         [Description("Height automatically adjusts if the text is too big.")]
         public Size DialogSize { get; set; } = new Size(314, 200); // 314 is the default because its the minimum width for all possible 3 buttons to fit
 
         [Category("HartUI Dialog")]
         [Description("How rounded should the dialog box be?")]
-        public int Rounding { get; set; } = 8;
+        public int DialogRounding { get; set; } = 8;
 
         //
 
@@ -69,13 +99,30 @@ namespace HartUI.Components
                 md.YesText = YesText;
                 md.NoText = NoText;
 
+                md.DialogRounding = DialogRounding;
                 md.Rounding = Rounding;
+
                 md.Size = DialogSize;
                 md.DimColor = DimColor;
                 md.DialogPadding = DialogPadding;
                 md.DialogResult = result;
                 md.BackColor = BackColor;
                 md.ForeColor = ForeColor;
+
+                md.ButtonColors = new Color[]
+                    {
+                        NormalBackground,
+                        HoverBackground,
+                        PressedBackground,
+
+                        NormalOutline,
+                        HoverOutline,
+                        PressedOutline,
+
+                        NormalForeColor,
+                        HoverForeColor,
+                        PressedForeColor
+                    };
 
                 return await md.ShowDialog(parentForm, description, title, messageBoxButtons, DialogSize, ButtonSize);
             }
