@@ -1,12 +1,10 @@
 ﻿using HartUI.Controls.Forms.Internal.DatePickerPages;
 using System;
-using System.Drawing;
 using System.Windows.Forms;
 
 namespace HartUI.Controls.Forms
 {
-    // technically this can be used without cuiCalendarDatePicker, so I'm not making it internal for now
-    public partial class DatePicker : Form
+    internal partial class DatePicker : Form
     {
         private DateTime privateValue;
         public DateTime Value
@@ -24,16 +22,34 @@ namespace HartUI.Controls.Forms
             }
         }
 
-        internal void ToggleThemeSwitchButton(bool value)
-        {
-            cuiButton4.TabStop = value;
-            cuiButton4.Visible = value;
-        }
-
         YearDatePicker yearPickerControl;
         MonthDatePicker monthDayPickerControl;
 
         bool isMonthDayPicker => pagePanel.Controls[0] == monthDayPickerControl;
+
+        private bool _closingFromDeactivate;
+
+        protected override void OnDeactivate(EventArgs e)
+        {
+            base.OnDeactivate(e);
+
+            if (_closingFromDeactivate)
+                return;
+
+            BeginInvoke(new Action(() =>
+            {
+                if (IsDisposed || Disposing)
+                    return;
+
+                // Another control inside this form still owns focus
+                if (ContainsFocus)
+                    return;
+
+                _closingFromDeactivate = true;
+                DialogResult = DialogResult.Cancel;
+                Close();
+            }));
+        }
 
         public DatePicker(DateTime startWithDateTime)
         {
@@ -49,6 +65,7 @@ namespace HartUI.Controls.Forms
             this.SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
 
             pagePanel.Controls.Add(monthDayPickerControl);
+            ActiveControl = cuiButton5;
         }
 
         void SetPage(UserControl pageControl)
@@ -101,102 +118,6 @@ namespace HartUI.Controls.Forms
             else
             {
                 SetPage(monthDayPickerControl);
-            }
-        }
-
-        public enum Themes
-        {
-            Dark,
-            Light
-        }
-
-        private Themes privateTheme = Themes.Dark;
-        public Themes Theme // why did I even settle on this in the first place??? todo
-        {
-            get
-            {
-                return privateTheme;
-            }
-            set
-            {
-                privateTheme = value;
-
-                SuspendLayout();
-
-                switch (value)
-                {
-                    case Themes.Light:
-                        BackColor = SystemColors.Control;
-                        foreach (Control ct in Controls)
-                        {
-                            if (ct is cuiTextBox ctb)
-                            {
-                                ctb.ForeColor = Color.Black;
-                                ctb.BackColor = SystemColors.Control;
-                                ctb.OutlineColor = Color.FromArgb(221, 221, 221);
-                            }
-                            else if (ct is cuiLabel cl && cl != cuiLabel3)
-                            {
-                                cl.ForeColor = Color.Black;
-                            }
-                        }
-                        cuiButton3.NormalOutline = Color.FromArgb(128, 255, 255, 255);
-
-                        cuiButton2.NormalBackground = Color.FromArgb(128, 255, 255, 255);
-                        cuiButton2.ForeColor = Color.Black;
-
-                        cuiButton1.NormalBackground = Color.FromArgb(128, 255, 255, 255);
-                        cuiButton1.NormalImageTint = Color.Black;
-                        cuiButton1.HoverImageTint = cuiButton1.NormalImageTint;
-                        cuiButton1.PressedImageTint = cuiButton1.NormalImageTint;
-
-                        cuiFormRounder1.OutlineColor = Color.FromArgb(30, 0, 0, 0);
-                        cuiLabel3.ForeColor = Color.FromArgb(84, 84, 84);
-                        break;
-
-                    case Themes.Dark:
-                        BackColor = Color.Black;
-                        foreach (Control ct in Controls)
-                        {
-                            if (ct is cuiTextBox ctb)
-                            {
-                                ctb.ForeColor = SystemColors.ButtonFace;
-                                ctb.BackColor = Color.Black;
-                                ctb.OutlineColor = Color.FromArgb(34, 34, 34);
-                            }
-                            else if (ct is cuiLabel cl && cl != cuiLabel3)
-                            {
-                                cl.ForeColor = Color.White;
-                            }
-                        }
-                        cuiButton3.NormalOutline = Color.FromArgb(20, 255, 255, 255);
-
-                        cuiButton2.NormalBackground = Color.FromArgb(20, 255, 255, 255);
-                        cuiButton2.ForeColor = Color.White;
-
-                        cuiButton1.NormalBackground = Color.FromArgb(20, 255, 255, 255);
-                        cuiButton1.NormalImageTint = Color.White;
-                        cuiButton1.HoverImageTint = cuiButton1.NormalImageTint;
-                        cuiButton1.PressedImageTint = cuiButton1.NormalImageTint;
-
-                        cuiFormRounder1.OutlineColor = Color.FromArgb(30, 255, 255, 255);
-                        cuiLabel3.ForeColor = Color.FromArgb(171, 171, 171);
-                        break;
-                }
-
-                ResumeLayout();
-            }
-        }
-
-        private void cuiButton4_Click(object sender, EventArgs e)
-        {
-            if (Theme == Themes.Light)
-            {
-                Theme = Themes.Dark;
-            }
-            else
-            {
-                Theme = Themes.Light;
             }
         }
 

@@ -36,7 +36,6 @@ namespace HartUI.Controls.Forms
             this.cuiButton5 = new HartUI.Controls.cuiButton();
             this.cuiButton3 = new HartUI.Controls.cuiButton();
             this.cuiButton2 = new HartUI.Controls.cuiButton();
-            this.cuiButton4 = new HartUI.Controls.cuiButton();
             this.cuiButton1 = new HartUI.Controls.cuiButton();
             this.cuiLabel3 = new HartUI.Controls.cuiLabel();
             this.cuiFormRounder1 = new HartUI.Components.cuiFormRounder();
@@ -177,46 +176,6 @@ namespace HartUI.Controls.Forms
             this.cuiButton2.Click += new System.EventHandler(this.cuiButton2_Click);
             this.cuiButton2.PreviewKeyDown += new System.Windows.Forms.PreviewKeyDownEventHandler(this.cuiButton2_PreviewKeyDown);
             // 
-            // cuiButton4
-            // 
-            this.cuiButton4.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.cuiButton4.CheckButton = false;
-            this.cuiButton4.Checked = false;
-            this.cuiButton4.CheckedBackground = System.Drawing.Color.Empty;
-            this.cuiButton4.CheckedForeColor = System.Drawing.Color.White;
-            this.cuiButton4.CheckedImageTint = System.Drawing.Color.White;
-            this.cuiButton4.CheckedOutline = System.Drawing.Color.Empty;
-            this.cuiButton4.Content = "";
-            this.cuiButton4.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.cuiButton4.DialogResult = System.Windows.Forms.DialogResult.None;
-            this.cuiButton4.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F);
-            this.cuiButton4.ForeColor = System.Drawing.Color.White;
-            this.cuiButton4.HoverBackground = System.Drawing.Color.Empty;
-            this.cuiButton4.HoverForeColor = System.Drawing.Color.White;
-            this.cuiButton4.HoverImageTint = System.Drawing.Color.Gray;
-            this.cuiButton4.HoverOutline = System.Drawing.Color.Empty;
-            this.cuiButton4.Image = global::HartUI.Properties.Resources.half_moon;
-            this.cuiButton4.ImageExpand = new System.Drawing.Point(2, 2);
-            this.cuiButton4.Location = new System.Drawing.Point(306, 1);
-            this.cuiButton4.Name = "cuiButton4";
-            this.cuiButton4.NormalBackground = System.Drawing.Color.Empty;
-            this.cuiButton4.NormalForeColor = System.Drawing.Color.White;
-            this.cuiButton4.NormalImageTint = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
-            this.cuiButton4.NormalOutline = System.Drawing.Color.Empty;
-            this.cuiButton4.OutlineThickness = 1.6F;
-            this.cuiButton4.Padding = new System.Windows.Forms.Padding(12);
-            this.cuiButton4.PressedBackground = System.Drawing.Color.Empty;
-            this.cuiButton4.PressedForeColor = System.Drawing.Color.White;
-            this.cuiButton4.PressedImageTint = System.Drawing.Color.FromArgb(((int)(((byte)(96)))), ((int)(((byte)(96)))), ((int)(((byte)(96)))));
-            this.cuiButton4.PressedOutline = System.Drawing.Color.Empty;
-            this.cuiButton4.Rounding = new System.Windows.Forms.Padding(8);
-            this.cuiButton4.Size = new System.Drawing.Size(43, 43);
-            this.cuiButton4.TabIndex = 22;
-            this.cuiButton4.TextAlignment = System.Drawing.StringAlignment.Center;
-            this.cuiButton4.TextPadding = 12;
-            this.cuiButton4.TextSpacing = 2;
-            this.cuiButton4.Click += new System.EventHandler(this.cuiButton4_Click);
-            // 
             // cuiButton1
             // 
             this.cuiButton1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
@@ -231,7 +190,7 @@ namespace HartUI.Controls.Forms
             this.cuiButton1.DialogResult = System.Windows.Forms.DialogResult.None;
             this.cuiButton1.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F);
             this.cuiButton1.ForeColor = System.Drawing.Color.Gray;
-            this.cuiButton1.HoverBackground = System.Drawing.Color.FromArgb(((int)(((byte)(200)))), ((int)(((byte)(130)))), ((int)(((byte)(130)))), ((int)(((byte)(130)))));
+            this.cuiButton1.HoverBackground = System.Drawing.Color.Empty;
             this.cuiButton1.HoverForeColor = System.Drawing.Color.White;
             this.cuiButton1.HoverImageTint = System.Drawing.Color.White;
             this.cuiButton1.HoverOutline = System.Drawing.Color.Empty;
@@ -239,15 +198,15 @@ namespace HartUI.Controls.Forms
             this.cuiButton1.ImageExpand = new System.Drawing.Point(2, 2);
             this.cuiButton1.Location = new System.Drawing.Point(355, 1);
             this.cuiButton1.Name = "cuiButton1";
-            this.cuiButton1.NormalBackground = System.Drawing.Color.FromArgb(((int)(((byte)(20)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
+            this.cuiButton1.NormalBackground = System.Drawing.Color.Empty;
             this.cuiButton1.NormalForeColor = System.Drawing.Color.Gray;
-            this.cuiButton1.NormalImageTint = System.Drawing.Color.White;
+            this.cuiButton1.NormalImageTint = System.Drawing.Color.Gray;
             this.cuiButton1.NormalOutline = System.Drawing.Color.Empty;
             this.cuiButton1.OutlineThickness = 1.6F;
             this.cuiButton1.Padding = new System.Windows.Forms.Padding(12);
-            this.cuiButton1.PressedBackground = System.Drawing.Color.FromArgb(((int)(((byte)(150)))), ((int)(((byte)(130)))), ((int)(((byte)(130)))), ((int)(((byte)(130)))));
+            this.cuiButton1.PressedBackground = System.Drawing.Color.Empty;
             this.cuiButton1.PressedForeColor = System.Drawing.Color.White;
-            this.cuiButton1.PressedImageTint = System.Drawing.Color.White;
+            this.cuiButton1.PressedImageTint = System.Drawing.Color.Gray;
             this.cuiButton1.PressedOutline = System.Drawing.Color.Empty;
             this.cuiButton1.Rounding = new System.Windows.Forms.Padding(8);
             this.cuiButton1.Size = new System.Drawing.Size(43, 43);
@@ -294,7 +253,6 @@ namespace HartUI.Controls.Forms
             this.Controls.Add(this.pagePanel);
             this.Controls.Add(this.cuiButton3);
             this.Controls.Add(this.cuiButton2);
-            this.Controls.Add(this.cuiButton4);
             this.Controls.Add(this.cuiButton1);
             this.Controls.Add(this.cuiLabel3);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
@@ -308,7 +266,6 @@ namespace HartUI.Controls.Forms
 
         #endregion
         private cuiFormDrag cuiFormDrag1;
-        private cuiButton cuiButton4;
         private cuiLabel cuiLabel3;
         private System.Windows.Forms.Panel pagePanel;
         private cuiControlDrag cuiControlDrag1;

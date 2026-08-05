@@ -4,7 +4,6 @@ using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
-using static HartUI.Controls.Forms.DatePicker;
 
 namespace HartUI.Controls
 {
@@ -101,38 +100,6 @@ namespace HartUI.Controls
         [Category("HartUI")]
         public event EventHandler DateChanged;
 
-        private Themes privateTheme = Themes.Light;
-
-        [Category("HartUI")]
-        public Themes Theme
-        {
-            get
-            {
-                return privateTheme;
-            }
-            set
-            {
-                privateTheme = value;
-            }
-        }
-
-        private bool privateEnableThemeChangeButton = false;
-
-        [Category("HartUI")]
-        [Description("Lets the user toggle the theme between Light and Dark with a button.")]
-        public bool EnableThemeChangeButton
-        {
-            get
-            {
-                return privateEnableThemeChangeButton;
-            }
-            set
-            {
-                privateEnableThemeChangeButton = value;
-                _PickerForm?.ToggleThemeSwitchButton(value);
-            }
-        }
-
         DatePicker _PickerForm;
         public bool isDialogVisible = false;
 
@@ -157,20 +124,30 @@ namespace HartUI.Controls
         internal void ShowDialog()
         {
             if (isDialogVisible)
-            {
                 return;
-            }
 
             isDialogVisible = true;
-            DatePicker PickerForm = new DatePicker(Content);
-            _PickerForm = PickerForm;
 
-            PickerForm.Theme = Theme;
-            PickerForm?.ToggleThemeSwitchButton(privateEnableThemeChangeButton);
+            var pickerForm = new DatePicker(Content);
+            _PickerForm = pickerForm;
+
+            pickerForm.StartPosition = FormStartPosition.Manual;
+            pickerForm.ShowInTaskbar = false;
+
+            pickerForm.FormClosed += (_, __) =>
+            {
+                if (pickerForm.DialogResult == DialogResult.OK)
+                    Content = pickerForm.Value;
+
+                if (ReferenceEquals(_PickerForm, pickerForm))
+                    _PickerForm = null;
+
+                isDialogVisible = false;
+            };
 
             Point basePoint = FindForm().Location + ((Size)Location);
-            int rounding = PickerForm.cuiFormRounder1.Rounding;
-            Size pickerSize = PickerForm.Size;
+            int rounding = pickerForm.cuiFormRounder1.Rounding;
+            Size pickerSize = pickerForm.Size;
 
             Point location;
 
@@ -209,28 +186,23 @@ namespace HartUI.Controls
                     break;
             }
 
-            PickerForm.Location = location;
-            PickerForm.Show();
-            PickerForm.FormClosing += formClosing;
+            pickerForm.Location = location;
 
-            void formClosing(object sender, EventArgs e)
-            {
-                PickerForm.FormClosing -= formClosing;
-                _PickerForm?.Dispose();
-                _PickerForm = null;
-                if (PickerForm.DialogResult == System.Windows.Forms.DialogResult.OK)
-                {
-                    Content = PickerForm.Value;
-                }
-                isDialogVisible = false;
-            }
+            var owner = FindForm();
+            if (owner != null)
+                pickerForm.Show(owner);
+            else
+                pickerForm.Show();
         }
 
         protected override void OnClick(EventArgs e)
         {
-            Focus();
-            ShowDialog();
             base.OnClick(e);
+
+            if (!isDialogVisible)
+            {
+                ShowDialog();
+            }
         }
     }
 }
