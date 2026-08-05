@@ -1,6 +1,6 @@
-![HartUI Banner (HartUI controls are shown in the window)](https://i.imgur.com/VWEqjRv.png)
+![HartUI Banner (HartUI controls are shown in the window)](https://i.imgur.com/1aRHK20.jpeg)
 
-# ![hartui logo](https://i.imgur.com/DfdxF3m.png)HartUI
+# ![hartui logo](https://i.imgur.com/JSIdg8m.png)HartUI
 
 A completely Free Winforms UI Library based on the now-archived [`CuoreUI.Winforms`](https://github.com/owtysm2/CuoreUI).
 
