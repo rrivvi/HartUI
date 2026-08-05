@@ -37,7 +37,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.contentTextField = new System.Windows.Forms.TextBox();
+            this.contentTextField = this.CreateContentTextField();
             this.panel1 = new System.Windows.Forms.Panel();
             this.placeholderTextField = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
@@ -100,8 +100,8 @@
         }
 
         #endregion
-        private System.Windows.Forms.Panel panel1;
-        private System.Windows.Forms.TextBox placeholderTextField;
+        protected System.Windows.Forms.Panel panel1;
+        protected System.Windows.Forms.TextBox placeholderTextField;
         public System.Windows.Forms.TextBox contentTextField;
     }
 }

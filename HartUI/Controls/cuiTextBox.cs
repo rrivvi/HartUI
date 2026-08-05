@@ -63,6 +63,11 @@ namespace HartUI.Controls
             PlaceholderText = "Placeholder text..";
         }
 
+        protected virtual TextBox CreateContentTextField()
+        {
+            return new TextBox();
+        }
+
         private void OnLoad(object sender, EventArgs e)
         {
             this.privateIsFocused = false;
@@ -102,12 +107,7 @@ namespace HartUI.Controls
             set
             {
                 privateFocusBackgroundColor = value;
-                if (DesignMode)
-                {
-                    contentTextField.BackColor = value;
-                    placeholderTextField.BackColor = value;
-                }
-                else
+                if (!DesignMode)
                 {
                     contentTextField.BackColor = privateIsFocused ? FocusBackgroundColor : value;
                     placeholderTextField.BackColor = contentTextField.BackColor;
@@ -569,54 +569,54 @@ namespace HartUI.Controls
             }
         }
 
-        private void textBox1_TextChanged(object sender, EventArgs e)
+        protected void textBox1_TextChanged(object sender, EventArgs e)
         {
             actualText = contentTextField.Text;
             UpdatePlaceholder();
             ContentChanged?.Invoke(this, e);
         }
-        private void textBox1_Click(object sender, EventArgs e)
+        protected void textBox1_Click(object sender, EventArgs e)
         {
             OnClick(e);
         }
 
-        private void textBox1_MouseEnter(object sender, EventArgs e)
+        protected void textBox1_MouseEnter(object sender, EventArgs e)
         {
             OnMouseEnter(e);
         }
-        private void textBox1_MouseLeave(object sender, EventArgs e)
+        protected void textBox1_MouseLeave(object sender, EventArgs e)
         {
             OnMouseLeave(e);
         }
-        private void textBox1_KeyPress(object sender, KeyPressEventArgs e)
+        protected void textBox1_KeyPress(object sender, KeyPressEventArgs e)
         {
             OnKeyPress(e);
         }
 
-        private void textBox1_Enter(object sender, EventArgs e)
+        protected void textBox1_Enter(object sender, EventArgs e)
         {
             privateIsFocused = true;
             UpdatePlaceholder();
         }
-        private void textBox1_Leave(object sender, EventArgs e)
+        protected void textBox1_Leave(object sender, EventArgs e)
         {
             privateIsFocused = false;
             Invalidate();
             UpdatePlaceholder();
         }
 
-        private void cuiTextBox2_Click(object sender, EventArgs e)
+        protected void cuiTextBox2_Click(object sender, EventArgs e)
         {
             contentTextField.Focus();
             Invalidate();
         }
 
-        private void textBox2_MouseDown(object sender, MouseEventArgs e)
+        protected void textBox2_MouseDown(object sender, MouseEventArgs e)
         {
             cuiTextBox2_Click(sender, e);
         }
 
-        private void textBox2_TextChanged(object sender, EventArgs e)
+        protected void textBox2_TextChanged(object sender, EventArgs e)
         {
             if (placeholderTextField.Text != PlaceholderText)
             {

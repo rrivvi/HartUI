@@ -30,8 +30,14 @@ namespace HartUI.Controls
             set
             {
                 tasks = value;
+                OnTasksChanged();
                 this.Invalidate();
             }
+        }
+
+        // the vertical version overrides this so that its painted correctly
+        protected virtual void OnTasksChanged()
+        {
         }
 
         public int privateTasksProgress = 2;
@@ -207,6 +213,7 @@ namespace HartUI.Controls
         // vertical version overrides these
         protected virtual int GetCrossExtent() => Height;
         protected virtual int GetPrimaryExtent() => Width;
+        protected virtual int GetTextCompensation(Graphics g) => Font.Height;
         protected virtual int TextGap => 1;
         // horizontal uses Alignment, vertical uses LineAlignment
         protected virtual StringFormat CreateStringFormat() => new StringFormat { Alignment = StringAlignment.Center };
@@ -224,7 +231,8 @@ namespace HartUI.Controls
             e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
             e.Graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
 
-            int wantedItemSize = GetCrossExtent() - 1;
+            int textCompensation = GetTextCompensation(e.Graphics);
+            int wantedItemSize = GetCrossExtent() - 1 - textCompensation;
 
             int penThicknessCompensation = wantedItemSize / 8;
             int halfPenThickness = penThicknessCompensation / 2;
