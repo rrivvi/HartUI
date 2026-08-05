@@ -60,7 +60,19 @@ namespace HartUI.Controls
             Multiline = false;
             Load += OnLoad;
             GotFocus += OnLoad;
+            contentTextField.GotFocus += internalField_GotFocus;
+            placeholderTextField.GotFocus += internalField_GotFocus;
             PlaceholderText = "Placeholder text..";
+        }
+
+        private void internalField_GotFocus(object sender, EventArgs e)
+        {
+            privateIsFocused = true;
+
+            if (!contentTextField.Focused)
+            {
+                contentTextField.Focus();
+            }
         }
 
         protected virtual TextBox CreateContentTextField()

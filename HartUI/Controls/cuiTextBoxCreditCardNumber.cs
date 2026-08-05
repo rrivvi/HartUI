@@ -22,6 +22,41 @@ namespace HartUI.Controls
             ContentChanged += CuiTextBoxCreditCardNumber_ContentChanged;
         }
 
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public new Image Image { get { return base.Image; } set { base.Image = value; } }
+
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public new Color NormalImageTint { get { return base.NormalImageTint; } set { base.NormalImageTint = value; } }
+
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public new Color FocusImageTint { get { return base.FocusImageTint; } set { base.FocusImageTint = value; } }
+
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public new bool Multiline { get { return base.Multiline; } set { base.Multiline = value; } }
+
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public new Point ImageOffset { get { return base.ImageOffset; } set { base.ImageOffset = value; } }
+
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public new Size TextOffset { get { return base.TextOffset; } set { base.TextOffset = value; } }
+
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public new Point ImageExpand { get { return base.ImageExpand; } set { base.ImageExpand = value; } }
+
         protected override TextBox CreateContentTextField()
         {
             return new HartUI.Controls.Internal.DigitsOnlyFormattedTextBox();
