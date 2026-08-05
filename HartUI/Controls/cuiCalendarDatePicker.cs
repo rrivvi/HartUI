@@ -37,6 +37,55 @@ namespace HartUI.Controls
             set { }
         }
 
+
+        [Browsable(false)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public new bool Checked
+        {
+            get { return false; }
+            set { }
+        }
+
+        [Browsable(false)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public new Color CheckedBackground
+        {
+            get { return Color.Empty; }
+            set { }
+        }
+        [Browsable(false)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public new Color CheckedImageTint
+        {
+            get { return Color.Empty; }
+            set { }
+        }
+        [Browsable(false)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public new Color CheckedForeColor
+        {
+            get { return Color.Empty; }
+            set { }
+        }
+        [Browsable(false)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public new Color CheckedOutline
+        {
+            get { return Color.Empty; }
+            set { }
+        }
+
+        [Category("HartUI Button Colors")]
+        public Color DialogBackColor { get; set; } = Color.White;
+
+        [Category("HartUI Button Colors")]
+        public Color DialogForeColor { get; set; } = Color.FromArgb(16, 16, 16);
+
         [Browsable(false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -128,7 +177,7 @@ namespace HartUI.Controls
 
             isDialogVisible = true;
 
-            var pickerForm = new DatePicker(Content);
+            var pickerForm = new DatePicker(Content, new Color[] { DialogBackColor, DialogForeColor });
             _PickerForm = pickerForm;
 
             pickerForm.StartPosition = FormStartPosition.Manual;

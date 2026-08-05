@@ -1,5 +1,6 @@
 ﻿using HartUI.Controls.Forms.Internal.DatePickerPages;
 using System;
+using System.Drawing;
 using System.Windows.Forms;
 
 namespace HartUI.Controls.Forms
@@ -51,9 +52,12 @@ namespace HartUI.Controls.Forms
             }));
         }
 
-        public DatePicker(DateTime startWithDateTime)
+        public DatePicker(DateTime startWithDateTime, Color[] dialogColors)
         {
             InitializeComponent();
+
+            BackColor = dialogColors[0];
+            ForeColor = dialogColors[1];
 
             yearPickerControl = new YearDatePicker(this);
             monthDayPickerControl = new MonthDatePicker(this);
@@ -66,6 +70,53 @@ namespace HartUI.Controls.Forms
 
             pagePanel.Controls.Add(monthDayPickerControl);
             ActiveControl = cuiButton5;
+        }
+
+        protected override void OnForeColorChanged(EventArgs e)
+        {
+            base.OnForeColorChanged(e);
+
+            cuiButton2.ForeColor = Color.FromArgb(255, ForeColor);
+            cuiButton2.HoverForeColor = cuiButton2.ForeColor;
+            cuiButton2.PressedForeColor = cuiButton2.ForeColor;
+
+            cuiButton3.ForeColor = cuiButton2.ForeColor;
+
+            cuiButton3.HoverForeColor = cuiButton2.ForeColor;
+            cuiButton3.PressedForeColor = cuiButton2.ForeColor;
+
+            cuiButton2.NormalImageTint = cuiButton2.ForeColor;
+            cuiButton3.NormalImageTint = cuiButton2.ForeColor;
+            cuiButton2.HoverImageTint = cuiButton2.ForeColor;
+            cuiButton3.HoverImageTint = cuiButton2.ForeColor;
+            cuiButton2.PressedImageTint = cuiButton2.ForeColor;
+            cuiButton3.PressedImageTint = cuiButton2.ForeColor;
+
+            cuiLabel3.ForeColor = cuiButton2.ForeColor;
+
+            cuiButton1.NormalForeColor = Color.FromArgb(128, cuiButton2.ForeColor);
+            cuiButton1.NormalImageTint = cuiButton1.NormalForeColor;
+            cuiButton1.PressedForeColor = cuiButton1.NormalForeColor;
+            cuiButton1.PressedImageTint = cuiButton1.NormalForeColor;
+            cuiButton1.HoverForeColor = cuiButton2.ForeColor;
+            cuiButton1.HoverImageTint = cuiButton2.ForeColor;
+
+            cuiButton5.NormalForeColor = cuiButton1.NormalForeColor;
+            cuiButton5.NormalImageTint = cuiButton1.NormalImageTint;
+            cuiButton5.PressedForeColor = cuiButton1.PressedForeColor;
+            cuiButton5.PressedImageTint = cuiButton1.PressedImageTint;
+            cuiButton5.HoverForeColor = cuiButton2.HoverForeColor;
+            cuiButton5.HoverImageTint = cuiButton2.HoverImageTint;
+
+            if (monthDayPickerControl != null)
+            {
+                monthDayPickerControl.ForeColor = cuiButton2.ForeColor;
+            }
+
+            if (monthDayPickerControl != null)
+            {
+                yearPickerControl.ForeColor = cuiButton2.ForeColor;
+            }
         }
 
         void SetPage(UserControl pageControl)
@@ -119,24 +170,6 @@ namespace HartUI.Controls.Forms
             {
                 SetPage(monthDayPickerControl);
             }
-        }
-
-        private void cuiButton2_ForeColorChanged(object sender, EventArgs e)
-        {
-            cuiButton2.HoverForeColor = cuiButton2.ForeColor;
-            cuiButton2.PressedForeColor = cuiButton2.ForeColor;
-
-            cuiButton3.ForeColor = cuiButton2.ForeColor;
-
-            cuiButton3.HoverForeColor = cuiButton2.ForeColor;
-            cuiButton3.PressedForeColor = cuiButton2.ForeColor;
-
-            cuiButton2.NormalImageTint = cuiButton2.ForeColor;
-            cuiButton3.NormalImageTint = cuiButton2.ForeColor;
-            cuiButton2.HoverImageTint = cuiButton2.ForeColor;
-            cuiButton3.HoverImageTint = cuiButton2.ForeColor;
-            cuiButton2.PressedImageTint = cuiButton2.ForeColor;
-            cuiButton3.PressedImageTint = cuiButton2.ForeColor;
         }
 
         private void cuiButton3_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)

@@ -453,7 +453,7 @@
             this.leftYearButton.HoverImageTint = System.Drawing.Color.Gray;
             this.leftYearButton.HoverOutline = System.Drawing.Color.Empty;
             this.leftYearButton.Image = ((System.Drawing.Image)(resources.GetObject("leftYearButton.Image")));
-            this.leftYearButton.ImageExpand = new System.Drawing.Point(0, 0);
+            this.leftYearButton.ImageExpand = new System.Drawing.Point(2, 2);
             this.leftYearButton.Location = new System.Drawing.Point(313, 167);
             this.leftYearButton.Name = "leftYearButton";
             this.leftYearButton.NormalBackground = System.Drawing.Color.Empty;
@@ -494,7 +494,7 @@
             this.rightYearButton.HoverImageTint = System.Drawing.Color.Gray;
             this.rightYearButton.HoverOutline = System.Drawing.Color.Empty;
             this.rightYearButton.Image = ((System.Drawing.Image)(resources.GetObject("rightYearButton.Image")));
-            this.rightYearButton.ImageExpand = new System.Drawing.Point(0, 0);
+            this.rightYearButton.ImageExpand = new System.Drawing.Point(2, 2);
             this.rightYearButton.Location = new System.Drawing.Point(348, 167);
             this.rightYearButton.Name = "rightYearButton";
             this.rightYearButton.NormalBackground = System.Drawing.Color.Empty;

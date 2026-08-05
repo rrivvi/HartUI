@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 
@@ -27,6 +28,38 @@ namespace HartUI.Controls.Forms.Internal.DatePickerPages
                 datePickerForm.SetYear(datePickerForm.Value.Year + 10, false);
                 UpdateYearButtons();
             };
+        }
+
+        protected override void OnForeColorChanged(EventArgs e)
+        {
+            base.OnForeColorChanged(e);
+
+            cuiButtonGroup[] cbgEnumerable = Controls.OfType<cuiButtonGroup>().ToArray();
+            foreach (var cbg in cbgEnumerable)
+            {
+                cbg.CheckedBackground = Color.FromArgb(64, ForeColor);
+                cbg.HoverBackground = Color.FromArgb(32, ForeColor);
+                cbg.PressedBackground = cbg.HoverBackground;
+
+                cbg.NormalForeColor = Color.FromArgb(128, ForeColor);
+                cbg.CheckedForeColor = ForeColor;
+                cbg.HoverForeColor = ForeColor;
+                cbg.PressedForeColor = ForeColor;
+            }
+
+            leftYearButton.NormalForeColor = Color.FromArgb(128, ForeColor);
+            leftYearButton.NormalImageTint = leftYearButton.NormalForeColor;
+            leftYearButton.PressedForeColor = leftYearButton.NormalForeColor;
+            leftYearButton.PressedImageTint = leftYearButton.NormalForeColor;
+            leftYearButton.HoverForeColor = ForeColor;
+            leftYearButton.HoverImageTint = ForeColor;
+
+            rightYearButton.NormalForeColor = leftYearButton.NormalForeColor;
+            rightYearButton.NormalImageTint = rightYearButton.NormalForeColor;
+            rightYearButton.PressedForeColor = rightYearButton.NormalForeColor;
+            rightYearButton.PressedImageTint = rightYearButton.NormalForeColor;
+            rightYearButton.HoverForeColor = ForeColor;
+            rightYearButton.HoverImageTint = ForeColor;
         }
 
         internal void UpdateYearButtons()

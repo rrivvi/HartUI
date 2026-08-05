@@ -27,6 +27,46 @@ namespace HartUI.Controls.Forms.Internal.DatePickerPages
             UpdateDayButtons();
         }
 
+        protected override void OnForeColorChanged(EventArgs e)
+        {
+            base.OnForeColorChanged(e);
+
+            cuiButtonGroup[] cbgEnumerable = dayPanel.Controls.OfType<cuiButtonGroup>().ToArray();
+            foreach (var cbg in cbgEnumerable)
+            {
+                cbg.CheckedBackground = Color.FromArgb(64, ForeColor);
+                cbg.HoverBackground = Color.FromArgb(32, ForeColor);
+                cbg.PressedBackground = cbg.HoverBackground;
+
+                cbg.NormalForeColor = Color.FromArgb(128, ForeColor);
+                cbg.CheckedForeColor = ForeColor;
+                cbg.HoverForeColor = cbg.NormalForeColor;
+                cbg.PressedForeColor = cbg.NormalForeColor;
+            }
+
+            leftMonthButton.NormalForeColor = Color.FromArgb(128, ForeColor);
+            leftMonthButton.NormalImageTint = leftMonthButton.NormalForeColor;
+            leftMonthButton.PressedForeColor = leftMonthButton.NormalForeColor;
+            leftMonthButton.PressedImageTint = leftMonthButton.NormalForeColor;
+            leftMonthButton.HoverForeColor = ForeColor;
+            leftMonthButton.HoverImageTint = ForeColor;
+
+            rightMonthButton.NormalForeColor = leftMonthButton.NormalForeColor;
+            rightMonthButton.NormalImageTint = rightMonthButton.NormalForeColor;
+            rightMonthButton.PressedForeColor = rightMonthButton.NormalForeColor;
+            rightMonthButton.PressedImageTint = rightMonthButton.NormalForeColor;
+            rightMonthButton.HoverForeColor = ForeColor;
+            rightMonthButton.HoverImageTint = ForeColor;
+
+            sundayLabel.ForeColor = Color.FromArgb(64, ForeColor);
+            mondayLabel.ForeColor = sundayLabel.ForeColor;
+            tuesdayLabel.ForeColor = sundayLabel.ForeColor;
+            wednesdayLabel.ForeColor = sundayLabel.ForeColor;
+            thursdayLabel.ForeColor = sundayLabel.ForeColor;
+            fridayLabel.ForeColor = sundayLabel.ForeColor;
+            saturdayLabel.ForeColor = sundayLabel.ForeColor;
+        }
+
         internal void UpdateDayButtons()
         {
             int daysInMonth = DateTime.DaysInMonth(_datePickerForm.Value.Year, _datePickerForm.Value.Month);
