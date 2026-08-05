@@ -1,7 +1,6 @@
 ﻿using HartUI.Misc.Internal;
 using System;
 using System.Drawing;
-using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Runtime.CompilerServices;
 using System.Windows.Forms;
@@ -10,7 +9,7 @@ namespace HartUI.Helpers
 {
     public static class DrawingHelper
     {
-        public static readonly Color PrimaryColor = Color.FromArgb(255, 106, 0);
+        public static readonly Color PrimaryColor = Color.FromArgb(61, 24, 226);
         public static Color TranslucentPrimaryColor => Color.FromArgb(192, PrimaryColor);
 
         private static Timer refreshRateTimer;
