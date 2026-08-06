@@ -109,8 +109,7 @@ namespace HartUI.Components
         private async void MouseHover(object sender, System.EventArgs e)
         {
             TooltipController.tooltipForm.Text = privateContent;
-
-            TooltipController.tooltipForm.Location = Cursor.Position - new Size((TooltipController.tooltipForm.Width / 2), -1);
+            TooltipController.tooltipForm.Location = Cursor.Position - GetOffset() + privatePositionOffset;
 
             ToggleFormVisibilityWithoutActivating(TooltipController.tooltipForm, true);
 
@@ -122,33 +121,29 @@ namespace HartUI.Components
                     break;
                 }
 
-                Size offset = Size.Empty;
-
-                if (TooltipPosition == Position.Custom)
-                {
-                    offset = new Size((TooltipController.tooltipForm.Width / 2), -1);
-                }
-                else if (TooltipPosition == Position.Top)
-                {
-                    offset = new Size((TooltipController.tooltipForm.Width / 2), 32);
-                }
-                else if (TooltipPosition == Position.Left)
-                {
-                    offset = new Size(TooltipController.tooltipForm.Width, TooltipController.tooltipForm.Height / 2);
-                }
-                else if (TooltipPosition == Position.Right)
-                {
-                    offset = new Size(0, TooltipController.tooltipForm.Height / 2);
-                }
-                else if (TooltipPosition == Position.Bottom)
-                {
-                    offset = new Size((TooltipController.tooltipForm.Width / 2), -24);
-                }
-
-                TooltipController.tooltipForm.Location = Cursor.Position - offset + privatePositionOffset;
+                TooltipController.tooltipForm.Location = Cursor.Position - GetOffset() + privatePositionOffset;
             }
 
             ToggleFormVisibilityWithoutActivating(TooltipController.tooltipForm, false);
+        }
+
+        private Size GetOffset()
+        {
+            switch (TooltipPosition)
+            {
+                case Position.Custom:
+                    return new Size(TooltipController.tooltipForm.Width / 2, -1);
+                case Position.Top:
+                    return new Size(TooltipController.tooltipForm.Width / 2, 32);
+                case Position.Left:
+                    return new Size(TooltipController.tooltipForm.Width, TooltipController.tooltipForm.Height / 2);
+                case Position.Right:
+                    return new Size(0, TooltipController.tooltipForm.Height / 2);
+                case Position.Bottom:
+                    return new Size(TooltipController.tooltipForm.Width / 2, -24);
+                default:
+                    return Size.Empty;
+            }
         }
 
         private static void ToggleFormVisibilityWithoutActivating(Form form, bool show)
