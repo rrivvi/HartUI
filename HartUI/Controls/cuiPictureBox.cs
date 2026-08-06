@@ -1,6 +1,7 @@
 ﻿using HartUI.Helpers;
 using System;
 using System.ComponentModel;
+using System.ComponentModel.Design;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
@@ -65,6 +66,31 @@ namespace HartUI.Controls
 
                 privateImageTint = value;
                 RebuildCache();
+            }
+        }
+
+        private PictureBoxSizeMode privateSizeMode = PictureBoxSizeMode.StretchImage;
+
+        [Category("HartUI")]
+        public PictureBoxSizeMode SizeMode
+        {
+            get => privateSizeMode;
+            set
+            {
+                if (privateSizeMode == value)
+                {
+                    return;
+                }
+
+                privateSizeMode = value;
+
+                if (privateSizeMode == PictureBoxSizeMode.AutoSize && privateContent != null)
+                {
+                    ApplyAutoSize();
+                }
+
+                UpdateTransform();
+                Invalidate();
             }
         }
 
@@ -136,8 +162,40 @@ namespace HartUI.Controls
 
             cachedImageBrush = new TextureBrush(cachedImage, WrapMode.Clamp);
 
+            if (privateSizeMode == PictureBoxSizeMode.AutoSize)
+            {
+                ApplyAutoSize();
+            }
+
             UpdateTransform();
             Invalidate();
+        }
+
+        private void ApplyAutoSize()
+        {
+            Size newSize = privateContent.Size;
+            if (Size == newSize)
+            {
+                return;
+            }
+
+            IDesignerHost host = GetService(typeof(IDesignerHost)) as IDesignerHost;
+            if (host == null)
+            {
+                Size = newSize;
+                return;
+            }
+
+            IComponentChangeService changeService = GetService(typeof(IComponentChangeService)) as IComponentChangeService;
+            PropertyDescriptor sizeProperty = TypeDescriptor.GetProperties(this)["Size"];
+
+            using (DesignerTransaction transaction = host.CreateTransaction($"Set {Name}.Size"))
+            {
+                changeService?.OnComponentChanging(this, sizeProperty);
+                Size = newSize;
+                changeService?.OnComponentChanged(this, sizeProperty, null, newSize);
+                transaction.Commit();
+            }
         }
 
         private void UpdateTransform()
@@ -147,13 +205,43 @@ namespace HartUI.Controls
 
             transformMatrix.Reset();
 
-            float scaleX = (float)Width / cachedImage.Width;
-            float scaleY = (float)Height / cachedImage.Height;
+            float scaleX, scaleY;
+            float offsetX = 0f, offsetY = 0f;
+
+            switch (privateSizeMode)
+            {
+                case PictureBoxSizeMode.Normal:
+                case PictureBoxSizeMode.AutoSize:
+                    scaleX = 1f;
+                    scaleY = 1f;
+                    break;
+
+                case PictureBoxSizeMode.CenterImage:
+                    scaleX = 1f;
+                    scaleY = 1f;
+                    offsetX = (Width - cachedImage.Width) / 2f;
+                    offsetY = (Height - cachedImage.Height) / 2f;
+                    break;
+
+                case PictureBoxSizeMode.Zoom:
+                    float ratio = Math.Min((float)Width / cachedImage.Width, (float)Height / cachedImage.Height);
+                    scaleX = ratio;
+                    scaleY = ratio;
+                    offsetX = (Width - cachedImage.Width * ratio) / 2f;
+                    offsetY = (Height - cachedImage.Height * ratio) / 2f;
+                    break;
+
+                default: // StretchImage
+                    scaleX = (float)Width / cachedImage.Width;
+                    scaleY = (float)Height / cachedImage.Height;
+                    break;
+            }
 
             transformMatrix.Scale(scaleX, scaleY);
             transformMatrix.RotateAt(privateRotation, new PointF(
                 cachedImage.Width / 2f,
                 cachedImage.Height / 2f));
+            transformMatrix.Translate(offsetX, offsetY, MatrixOrder.Append);
 
             cachedImageBrush.Transform = transformMatrix;
         }
