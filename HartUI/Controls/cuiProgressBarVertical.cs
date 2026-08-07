@@ -8,6 +8,7 @@ namespace HartUI.Controls
     {
         public cuiProgressBarVertical() : base()
         {
+            Size = new Size(Height, Width);
         }
 
         protected override RectangleF GetForegroundRect(float filledPercent)
