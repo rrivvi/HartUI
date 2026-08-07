@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
+using System.Windows.Forms;
 
 namespace HartUI.Helpers
 {
@@ -51,6 +52,31 @@ namespace HartUI.Helpers
                 return false;
             }
         }
+
+        [DllImport("dwmapi.dll")]
+        private static extern int DwmSetWindowAttribute(IntPtr hwnd, uint dwAttribute, ref int pvAttribute, uint cbAttribute);
+
+        public static void SetTitleBarDark(Form form, bool dark)
+        {
+            int val = dark ? 1 : 0;
+            if (DwmSetWindowAttribute(form.Handle, 20, ref val, 4) != 0)
+            {
+                DwmSetWindowAttribute(form.Handle, 19, ref val, 4);
+            }
+        }
+
+        private static void SetWindowColorAttribute(Form form, uint attribute, Color color)
+        {
+            int value = color.IsEmpty
+                ? unchecked((int)0xFFFFFFFF)
+                : color.R | (color.G << 8) | (color.B << 16);
+
+            DwmSetWindowAttribute(form.Handle, attribute, ref value, sizeof(int));
+        }
+
+        public static void SetTitleBarBackColor(Form form, Color color) => SetWindowColorAttribute(form, 35, color);
+
+        public static void SetTitleBarTextColor(Form form, Color color) => SetWindowColorAttribute(form, 36, color);
 
         public const uint FLASHW_ALL = 1 | 2;
         public const uint FLASHW_TIMERNOFG = 12;
