@@ -8,6 +8,7 @@ using System.Windows.Forms;
 
 namespace HartUI.Controls
 {
+    [Designer(typeof(DesignerIntegration.HartControlDesigner))]
     [ToolboxBitmap(typeof(CheckBox))]
     [DefaultEvent("CheckedChanged")]
     public partial class cuiCheckbox : Control

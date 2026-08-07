@@ -13,6 +13,7 @@ using static HartUI.Helpers.GeneralHelper;
 
 namespace HartUI.Controls
 {
+    [Designer(typeof(DesignerIntegration.HartControlDesigner))]
     [Description("HSV Color picker wheel, triangle inside")]
     [DefaultEvent("SelectedColor")]
     public partial class cuiColorPickerWheel : UserControl

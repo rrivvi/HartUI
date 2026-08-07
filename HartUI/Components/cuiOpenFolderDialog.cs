@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using HartUI.Misc.Internal;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
 
 namespace HartUI.Components
 {
+    [Designer(typeof(DesignerIntegration.HartComponentDesigner))]
     [Description("The proper OpenFolderDialog, because of the outdated FolderBrowserDialog")]
     [ToolboxBitmap(typeof(FolderBrowserDialog))]
     public partial class cuiOpenFolderDialog : Component

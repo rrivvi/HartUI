@@ -1,4 +1,5 @@
 ﻿using HartUI.Helpers;
+using HartUI.Misc.Internal;
 using System;
 using System.ComponentModel;
 using System.ComponentModel.Design;
@@ -9,6 +10,7 @@ using System.Windows.Forms;
 
 namespace HartUI.Controls
 {
+    [Designer(typeof(DesignerIntegration.HartControlDesigner))]
     [ToolboxBitmap(typeof(PictureBox))]
     public partial class cuiPictureBox : UserControl
     {

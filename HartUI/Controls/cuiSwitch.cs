@@ -10,6 +10,7 @@ using static HartUI.Helpers.DrawingHelper;
 
 namespace HartUI.Controls
 {
+    [Designer(typeof(DesignerIntegration.HartControlDesigner))]
     [Description("Modern take on the checkbox")]
     [ToolboxBitmap(typeof(ProgressBar))]
     [DefaultEvent("CheckedChanged")]

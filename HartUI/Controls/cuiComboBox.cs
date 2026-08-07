@@ -10,6 +10,7 @@ using System.Windows.Forms;
 
 namespace HartUI.Controls
 {
+    [Designer(typeof(DesignerIntegration.HartControlDesigner))]
     [DefaultEvent("SelectedIndexChanged")]
     [ToolboxBitmap(typeof(ComboBox))]
     public partial class cuiComboBox : UserControl

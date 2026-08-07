@@ -10,6 +10,7 @@ using Image = System.Drawing.Image;
 
 namespace HartUI.Controls
 {
+    [Designer(typeof(DesignerIntegration.HartControlDesigner))]
     [ToolboxBitmap(typeof(Button))]
     [DefaultEvent("Click")]
     public partial class cuiButton : UserControl

@@ -8,6 +8,7 @@ using System.Windows.Forms;
 
 namespace HartUI.Controls
 {
+    [Designer(typeof(DesignerIntegration.HartControlDesigner))]
     [Description("Select a rating in stars")]
     [ToolboxBitmap(typeof(ToolTip))]
     [DefaultEvent("RatingChanged")]

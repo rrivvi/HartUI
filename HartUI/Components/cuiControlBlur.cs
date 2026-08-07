@@ -1,4 +1,5 @@
 ﻿using HartUI.Helpers;
+using HartUI.Misc.Internal;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
@@ -7,6 +8,7 @@ using System.Windows.Forms;
 
 namespace HartUI.Components
 {
+    [Designer(typeof(DesignerIntegration.HartComponentDesigner))]
     [Description("Blur effect on a control")]
     [ToolboxBitmap(typeof(Panel))]
     public partial class cuiControlBlur : Component

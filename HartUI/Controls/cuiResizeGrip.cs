@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HartUI.Misc.Internal;
+using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -7,6 +8,7 @@ using System.Windows.Forms;
 
 namespace HartUI.Controls
 {
+    [Designer(typeof(DesignerIntegration.HartControlDesigner))]
     [Description("Bring back resizing for FormBorderStyle.None forms")]
     [ToolboxBitmap(typeof(Form))]
 

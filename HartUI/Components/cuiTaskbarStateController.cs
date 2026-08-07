@@ -1,4 +1,5 @@
-﻿using Microsoft.WindowsAPICodePack.Taskbar;
+﻿using HartUI.Misc.Internal;
+using Microsoft.WindowsAPICodePack.Taskbar;
 using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
@@ -7,6 +8,7 @@ using static HartUI.Helpers.WindowsHelper;
 
 namespace HartUI.Components
 {
+    [Designer(typeof(DesignerIntegration.HartComponentDesigner))]
     [Description("Controls the form's taskbar icon's look")]
     public partial class cuiTaskbarStateController : Component
     {

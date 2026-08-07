@@ -10,6 +10,7 @@ using System.Windows.Forms;
 
 namespace HartUI.Controls
 {
+    [Designer(typeof(DesignerIntegration.HartControlDesigner))]
     [ToolboxBitmap(typeof(TabControl))]
     public partial class cuiTabControl : UserControl
     {

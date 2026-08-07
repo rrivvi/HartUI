@@ -1,10 +1,12 @@
 ﻿using HartUI.Helpers;
+using HartUI.Misc.Internal;
 using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
 
 namespace HartUI.Components
 {
+    [Designer(typeof(DesignerIntegration.HartComponentDesigner))]
     [Description("Toggles a form's title bar between light and dark mode")]
     public partial class cuiTitleBarCustomizer : Component
     {

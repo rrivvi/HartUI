@@ -1,4 +1,5 @@
-﻿using Microsoft.WindowsAPICodePack.Taskbar;
+﻿using HartUI.Misc.Internal;
+using Microsoft.WindowsAPICodePack.Taskbar;
 using System;
 using System.ComponentModel;
 using System.Drawing;
@@ -7,6 +8,7 @@ using System.Windows.Forms;
 
 namespace HartUI.Components
 {
+    [Designer(typeof(DesignerIntegration.HartComponentDesigner))]
     [Description("Shows a badge next to your form's taskbar icon")]
     public partial class cuiTaskbarBadgeController : Component
     {

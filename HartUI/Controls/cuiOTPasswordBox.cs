@@ -1,4 +1,5 @@
 ﻿using HartUI.Helpers;
+using HartUI.Misc.Internal;
 using System;
 using System.ComponentModel;
 using System.Drawing;
@@ -8,6 +9,7 @@ using System.Windows.Forms;
 
 namespace HartUI.Controls
 {
+    [Designer(typeof(DesignerIntegration.HartControlDesigner))]
     [Description("Lets the user input characters in separate boxes")]
     [DefaultEvent("FinishedTypingContent")]
     public partial class cuiOTPasswordBox : UserControl

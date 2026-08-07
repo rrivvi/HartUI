@@ -12,6 +12,7 @@ using System.Windows.Forms;
 
 namespace HartUI.Controls
 {
+    [Designer(typeof(DesignerIntegration.HartControlDesigner))]
     [Description("Lets the user select a file or drop it onto the control")]
     [DefaultEvent("FileDropped")]
     public partial class cuiFileDropper : Control

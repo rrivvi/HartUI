@@ -1,10 +1,12 @@
-﻿using System.ComponentModel;
+﻿using HartUI.Misc.Internal;
+using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 
 namespace HartUI.Controls
 {
+    [Designer(typeof(DesignerIntegration.HartControlDesigner))]
     [Description("Progress bar in the shape of a circle")]
     [ToolboxBitmap(typeof(ProgressBar))]
     public partial class cuiCircleProgressBar : UserControl

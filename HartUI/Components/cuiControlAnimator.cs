@@ -1,4 +1,5 @@
 ﻿using HartUI.Helpers;
+using HartUI.Misc.Internal;
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -10,6 +11,7 @@ using static HartUI.Helpers.DrawingHelper;
 
 namespace HartUI.Components
 {
+    [Designer(typeof(DesignerIntegration.HartComponentDesigner))]
     [Description("Animate your control's location and/or opacity with easing functions")]
     [ToolboxBitmap(typeof(TrackBar))]
     public partial class cuiControlAnimator : Component

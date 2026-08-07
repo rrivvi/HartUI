@@ -1,5 +1,6 @@
 ﻿using HartUI.Components.Forms;
 using HartUI.Helpers;
+using HartUI.Misc.Internal;
 using System.ComponentModel;
 using System.Drawing;
 using System.Threading.Tasks;
@@ -8,6 +9,7 @@ using static HartUI.Helpers.WindowsHelper;
 
 namespace HartUI.Components
 {
+    [Designer(typeof(DesignerIntegration.HartComponentDesigner))]
     [Description("Show a tooltip when hovering over a specific control")]
     public partial class cuiTooltipHover : Component
     {

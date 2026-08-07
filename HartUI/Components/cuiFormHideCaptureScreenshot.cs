@@ -1,10 +1,12 @@
-﻿using System;
+﻿using HartUI.Misc.Internal;
+using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
 
 namespace HartUI.Components
 {
+    [Designer(typeof(DesignerIntegration.HartComponentDesigner))]
     [ToolboxBitmap(typeof(MaskedTextBox))]
     [Description("Hides your form from screenshots and screen recordings.")]
     public partial class cuiFormHideCaptureScreenshot : Component

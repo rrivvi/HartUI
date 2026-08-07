@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HartUI.Misc.Internal;
+using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Threading.Tasks;
@@ -7,6 +8,7 @@ using static HartUI.Helpers.DrawingHelper;
 
 namespace HartUI.Components
 {
+    [Designer(typeof(DesignerIntegration.HartComponentDesigner))]
     [Description("Animate how your form shows itself")]
     public partial class cuiFormAnimator : Component
     {

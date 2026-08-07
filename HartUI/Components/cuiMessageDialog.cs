@@ -1,4 +1,5 @@
 ﻿using HartUI.Components.Forms;
+using HartUI.Misc.Internal;
 using System.ComponentModel;
 using System.Drawing;
 using System.Threading.Tasks;
@@ -6,6 +7,7 @@ using System.Windows.Forms;
 
 namespace HartUI.Components
 {
+    [Designer(typeof(DesignerIntegration.HartComponentDesigner))]
     [Description("Modern dialog which disables interaction with the form until option is chosen")]
     public partial class cuiMessageDialog : Component
     {

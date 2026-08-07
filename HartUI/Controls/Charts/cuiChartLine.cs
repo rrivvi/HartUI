@@ -9,6 +9,7 @@ using System.Windows.Forms;
 
 namespace HartUI.Controls.Charts
 {
+    [Designer(typeof(DesignerIntegration.HartControlDesigner))]
     [Description("Simple line chart control")]
     public partial class cuiChartLine : UserControl
     {

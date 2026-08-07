@@ -8,6 +8,7 @@ using System.Windows.Forms;
 
 namespace HartUI.Controls
 {
+    [Designer(typeof(DesignerIntegration.HartControlDesigner))]
     [ToolboxBitmap(typeof(TrackBar))]
     [DefaultEvent("ValueChanged")]
     public partial class cuiSlider : UserControl

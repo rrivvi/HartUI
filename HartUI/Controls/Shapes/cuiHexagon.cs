@@ -1,4 +1,5 @@
 ﻿using HartUI.Helpers;
+using HartUI.Misc.Internal;
 using System;
 using System.ComponentModel;
 using System.Drawing;
@@ -7,6 +8,7 @@ using System.Windows.Forms;
 
 namespace HartUI.Controls.Shapes
 {
+    [Designer(typeof(DesignerIntegration.HartControlDesigner))]
     public partial class cuiHexagon : UserControl
     {
         public cuiHexagon()

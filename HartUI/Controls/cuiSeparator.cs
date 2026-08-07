@@ -1,10 +1,12 @@
-﻿using System.ComponentModel;
+﻿using HartUI.Misc.Internal;
+using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 
 namespace HartUI.Controls
 {
+    [Designer(typeof(DesignerIntegration.HartControlDesigner))]
     [Description("Also called a Divider, separate content from each other")]
     [ToolboxBitmap(typeof(SplitContainer))]
     public partial class cuiSeparator : UserControl

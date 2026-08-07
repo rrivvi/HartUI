@@ -1,5 +1,6 @@
 ﻿using HartUI.Components.Forms;
 using HartUI.Helpers;
+using HartUI.Misc.Internal;
 using System;
 using System.ComponentModel;
 using System.Drawing;
@@ -10,6 +11,7 @@ using Task = System.Threading.Tasks.Task;
 
 namespace HartUI.Components
 {
+    [Designer(typeof(DesignerIntegration.HartComponentDesigner))]
     [Description("(Experimental) Rounded corners for Windows 10 and below")]
     [ToolboxBitmap(typeof(Form))]
     public partial class cuiFormRounder : Component
@@ -50,7 +52,7 @@ namespace HartUI.Components
                         privateTargetForm.Activated -= TargetForm_Activated;
                         privateTargetForm.HandleCreated -= TargetForm_HandleCreated;
                         privateTargetForm.ResizeEnd -= TargetForm_ResizeEnd;
-                        privateTargetForm.BackColorChanged -= TargetForm_BackColorChanged; 
+                        privateTargetForm.BackColorChanged -= TargetForm_BackColorChanged;
                     }
                 }
 
