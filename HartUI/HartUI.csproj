@@ -104,7 +104,6 @@
   <ItemGroup>
     <PackageReference Include="Costura.Fody" Version="6.0.0">
       <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Fody" Version="6.9.3">
       <PrivateAssets>all</PrivateAssets>
@@ -121,6 +120,15 @@
   <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
     <Reference Include="System.Design" />
   </ItemGroup>
+<ItemGroup Condition="'$(TargetFramework)' == 'net8.0-windows'">
+  <PackageReference Include="Microsoft.WinForms.Designer.SDK" Version="1.6.0" />
+</ItemGroup>
+<PropertyGroup Condition="'$(TargetFramework)' == 'net472'">
+  <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
+</PropertyGroup>
+<ItemGroup Condition="'$(TargetFramework)' == 'net472'">
+  <PackageReference Include="System.Resources.Extensions" Version="8.0.0" />
+</ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

@@ -1,9 +1,20 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.ComponentModel.Design;
 using System.Windows.Forms;
+
+#if NET472
+using System.ComponentModel.Design;
 using System.Windows.Forms.Design;
+#else
+using Microsoft.DotNet.DesignTools.Designers;
+using Microsoft.DotNet.DesignTools.Designers.Actions;
+using IDesignerHost = System.ComponentModel.Design.IDesignerHost;
+using IComponentChangeService = System.ComponentModel.Design.IComponentChangeService;
+using ISelectionService = System.ComponentModel.Design.ISelectionService;
+using DesignerTransaction = System.ComponentModel.Design.DesignerTransaction;
+using SelectionTypes = System.ComponentModel.Design.SelectionTypes;
+#endif
 
 namespace HartUI.Misc.Internal
 {
@@ -242,19 +253,19 @@ namespace HartUI.Misc.Internal
                 var host = (IDesignerHost)GetService(typeof(IDesignerHost));
                 var changeService = (IComponentChangeService)GetService(typeof(IComponentChangeService));
 
-                DesignerTransaction t = null;
-                try
+                using (var t = host?.CreateTransaction("Paste Settings"))
                 {
-                    t = host?.CreateTransaction("Paste Settings");
-                    changeService?.OnComponentChanging(targetControl, null);
-                    designerIntegration.PasteClipboard(targetControl);
-                    changeService?.OnComponentChanged(targetControl, null, null, null);
-                    t?.Commit();
-                }
-                catch
-                {
-                    t?.Cancel();
-                    t = null;
+                    try
+                    {
+                        changeService?.OnComponentChanging(targetControl, null);
+                        designerIntegration.PasteClipboard(targetControl);
+                        changeService?.OnComponentChanged(targetControl, null, null, null);
+                        t?.Commit();
+                    }
+                    catch
+                    {
+                        t?.Cancel();
+                    }
                 }
 
                 TypeDescriptor.Refresh(targetControl);
