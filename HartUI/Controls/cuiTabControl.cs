@@ -16,11 +16,14 @@ namespace HartUI.Controls
     {
         private bool hoveringInteractive = false;
         private bool showKeyboardFocus = InputManager.LastInputWasKeyboard;
-        public List<TabPage> pages = new List<TabPage>();
+        protected List<TabPage> pages = new List<TabPage>();
+
+        [Category("HartUI")]
         public IReadOnlyList<TabPage> Pages => pages;
         private int _selectedIndex = -1;
 
         private bool privateShowPlus = true;
+        [Category("HartUI")]
         public bool ShowPlus
         {
             get { return privateShowPlus; }
@@ -32,6 +35,7 @@ namespace HartUI.Controls
         }
 
         private bool privateShowDelete = true;
+        [Category("HartUI")]
         public bool ShowDelete
         {
             get { return privateShowDelete; }
@@ -43,6 +47,7 @@ namespace HartUI.Controls
         }
 
         private int privateRounding = 8;
+        [Category("HartUI")]
         public int Rounding
         {
             get { return privateRounding; }
@@ -68,12 +73,14 @@ namespace HartUI.Controls
             MouseMove += tb_MouseMove;
         }
 
+        [Category("HartUI")]
         public int SelectedIndex
         {
             get { return _selectedIndex; }
             set { SelectTab(value); }
         }
 
+        [Category("HartUI")]
         public TabPage SelectedTab
         {
             get
@@ -126,6 +133,7 @@ namespace HartUI.Controls
         private const int CloseBoxSize = 16;
         private const int TabPadding = 6;
 
+        [Category("HartUI")]
         public int ScrollbarHeight { get; set; } = 8;
         public Rectangle scrollbarThumbRect;
         private bool draggingThumb = false;
@@ -151,6 +159,7 @@ namespace HartUI.Controls
             set { namingConvention = value ?? "TabPage"; }
         }
 
+        [Category("HartUI")]
         public int Count => pages.Count;
 
         public string GetUniqueTabName()
@@ -331,27 +340,43 @@ namespace HartUI.Controls
             SelectTab(pages.IndexOf(page));
         }
 
+        [Category("HartUI")]
         public Size ImageExpand { get; set; } = new Size(-4, -4);
+        [Category("HartUI")]
         public Size TextOffset { get; set; } = new Size(0, 0);
 
+        [Category("HartUI")]
         public Color SelectedImageTint { get; set; } = Color.Black;
+        [Category("HartUI")]
         public Color UnselectedImageTint { get; set; } = Color.FromArgb(64, 64, 64);
+        [Category("HartUI")]
         public Color HoverImageTint { get; set; } = Color.FromArgb(32, 32, 32);
 
+        [Category("HartUI")]
         public Color UnselectedBackgroundColor { get; set; } = Color.FromArgb(244, 244, 244);
+        [Category("HartUI")]
         public Color SelectedBackgroundColor { get; set; } = Color.White;
+        [Category("HartUI")]
         public Color HoverBackgroundColor { get; set; } = Color.FromArgb(252, 252, 252);
 
+        [Category("HartUI")]
         public Color SelectedTextColor { get; set; } = Color.Black;
+        [Category("HartUI")]
         public Color UnselectedTextColor { get; set; } = Color.FromArgb(64, 64, 64);
+        [Category("HartUI")]
         public Color HoverTextColor { get; set; } = Color.FromArgb(32, 32, 32);
 
+        [Category("HartUI")]
         public Color PlusColor { get; set; } = Color.Gray;
 
+        [Category("HartUI")]
         public Color UnselectedDeleteColor { get; set; } = Color.Gray;
+        [Category("HartUI")]
         public Color SelectedDeleteColor { get; set; } = Color.Crimson;
+        [Category("HartUI")]
         public Color HoverDeleteColor { get; set; } = Color.FromArgb(32, 32, 32);
 
+        [Category("HartUI")]
         public Color ScrollbarColor { get; set; } = Color.FromArgb(128, 128, 128);
 
         private SizeF cachedTextSize = SizeF.Empty;

@@ -25,7 +25,7 @@ namespace HartUI.Components
         }
 
         private Form privateTargetForm = null;
-        [Category("Animating")]
+        [Category("HartUI Animating")]
         public Form TargetForm
         {
             get
@@ -48,12 +48,12 @@ namespace HartUI.Components
             }
         }
 
-        [Category("Animating")]
+        [Category("HartUI Animating")]
         public bool AnimateOnStart { get; set; } = true;
 
         private double privateStartOpacity = 0;
 
-        [Category("Animating Opacity")]
+        [Category("HartUI Animating Opacity")]
         public double StartOpacity
         {
             get
@@ -68,7 +68,7 @@ namespace HartUI.Components
 
         private double privateTargetOpacity = 1;
 
-        [Category("Animating Opacity")]
+        [Category("HartUI Animating Opacity")]
         public double TargetOpacity
         {
             get
@@ -107,10 +107,10 @@ namespace HartUI.Components
             return targetOpacity < 0 ? 0 : (targetOpacity > 1 ? 1 : targetOpacity);
         }
 
-        [Category("Animating")]
+        [Category("HartUI Animating")]
         public int Duration { get; set; } = 400;
 
-        [Category("Animating")]
+        [Category("HartUI Animating")]
         public EasingTypes EasingType
         {
             get; set;
