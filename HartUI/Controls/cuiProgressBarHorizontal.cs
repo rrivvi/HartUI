@@ -38,6 +38,29 @@ namespace HartUI.Controls
             }
         }
 
+        private int privateMinValue = 0;
+
+        [Category("HartUI")]
+        public int MinValue
+        {
+            get
+            {
+                return privateMinValue;
+            }
+            set
+            {
+                if (value < privateMaxValue)
+                {
+                    privateMinValue = value;
+                    if (privateMinValue > privateValue)
+                    {
+                        privateValue = privateMinValue;
+                    }
+                    Invalidate();
+                }
+            }
+        }
+
         private int privateMaxValue = 100;
 
         [Category("HartUI")]
@@ -49,8 +72,15 @@ namespace HartUI.Controls
             }
             set
             {
-                privateMaxValue = value;
-                Invalidate();
+                if (value > privateMinValue)
+                {
+                    privateMaxValue = value;
+                    if (privateMaxValue < privateValue)
+                    {
+                        privateValue = privateMaxValue;
+                    }
+                    Invalidate();
+                }
             }
         }
 
@@ -146,7 +176,9 @@ namespace HartUI.Controls
 
             using (GraphicsPath roundBackground = GeneralHelper.RoundRect(ClientRectangle, Rounding))
             {
-                float filledPercent = (float)Value / MaxValue;
+                float filledPercent = MaxValue == MinValue
+                    ? 0f
+                    : (float)(Value - MinValue) / (MaxValue - MinValue);
 
                 if (Flipped)
                 {
