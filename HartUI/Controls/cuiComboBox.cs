@@ -221,6 +221,22 @@ namespace HartUI.Controls
         [Category("HartUI")]
         public bool SortAlphabetically { get; set; } = true;
 
+        private int privateItemHeight = 32;
+        [Category("HartUI")]
+        [Description("How big the drop down popup can be at maximum.")]
+        public int ItemHeight
+        {
+            get
+            {
+                return privateItemHeight;
+            }
+            set
+            {
+                privateItemHeight = value;
+                Invalidate();
+            }
+        }
+
         protected override void OnClick(EventArgs e)
         {
             //MessageBox.Show($"{_items.Contains(_selectedItem)}, {_selectedItem}");
@@ -237,6 +253,7 @@ namespace HartUI.Controls
             PreloadedForms.ComboBoxDropDownForm.BackColor = privateDropDownBackgroundColor;
             PreloadedForms.ComboBoxDropDownForm.ForeColor = DropDownForeColor;
             PreloadedForms.ComboBoxDropDownForm._selectedIndex = privateItems.IndexOf(privateSelectedItem);
+            PreloadedForms.ComboBoxDropDownForm.buttonHeight = ItemHeight;
 
             // The ComboBoxDropDownForm.Show method returns a bool:
             // true means the drop down appeared successfully

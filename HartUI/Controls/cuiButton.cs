@@ -34,6 +34,7 @@ namespace HartUI.Controls
 
         bool showKeyboardFocus = InputManager.LastInputWasKeyboard;
 
+        [Category("HartUI")]
         public event EventHandler CheckedChanged;
 
         private DialogResult privateDialogResult = DialogResult.None;
@@ -477,6 +478,9 @@ namespace HartUI.Controls
             }
         }
 
+        protected virtual int RightAccessoryWidth => 0;
+        protected int ContentRightEdge { get; private set; }
+
         protected override void OnPaint(PaintEventArgs e)
         {
             e.Graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
@@ -599,7 +603,8 @@ namespace HartUI.Controls
             int textWidth = (int)Math.Ceiling(cachedTextSize.Width);
 
             int imageWidth = privateImage != null ? imageRectangle.Width : 0;
-            int combinedWidth = imageWidth + (privateImage != null ? textSpacing : 0) + textWidth;
+            int accessoryWidth = RightAccessoryWidth > 0 ? RightAccessoryWidth + textSpacing : 0;
+            int combinedWidth = imageWidth + (privateImage != null ? textSpacing : 0) + textWidth + accessoryWidth;
 
             int startX;
 
@@ -629,6 +634,8 @@ namespace HartUI.Controls
             }
 
             textRectangle.X += 2;
+
+            ContentRightEdge = textRectangle.X + textWidth;
 
             using (SolidBrush brush = new SolidBrush(renderedForeColor))
             {

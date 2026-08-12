@@ -13,6 +13,9 @@ namespace HartUI.Controls.Forms.Internal
     public partial class ComboBoxDropDownForm : Form
     {
         private List<string> Items = new List<string> { };
+
+        // only populated by cuiButtonDropdown so far
+        private List<Image> ItemImages = null;
         private Control TargetControl = null;
 
         int scrollOffset = 0;
@@ -23,11 +26,11 @@ namespace HartUI.Controls.Forms.Internal
         internal int focusedIndex = -1;
         bool showKeyboardFocus = false;
 
-        // todo: expose these as properties
         internal int buttonHeight = 36;
         internal int buttonPadding = 6;
         internal int formPadding = 2;
         const int scrollbarWidth = 8;
+        const int itemImageSpacing = 6;
 
         protected override void OnMouseDown(MouseEventArgs e)
         {
@@ -239,7 +242,7 @@ namespace HartUI.Controls.Forms.Internal
             base.OnMouseWheel(e);
         }
 
-        public bool Show(Control attachToControl, System.Collections.Generic.List<string> comboBoxItems)
+        public bool Show(Control attachToControl, List<string> comboBoxItems, List<Image> itemImages = null)
         {
             if (canShow == false)
             {
@@ -250,11 +253,16 @@ namespace HartUI.Controls.Forms.Internal
             Owner = attachToControl.FindForm();
             TargetControl = attachToControl;
             Items = comboBoxItems;
+            ItemImages = itemImages;
             focusedIndex = (SelectedIndex >= 0 && SelectedIndex < Items.Count) ? SelectedIndex : (Items.Count > 0 ? 0 : -1);
 
             if (attachToControl is cuiComboBox ccb)
             {
                 MaxDropDownHeight = ccb.MaxDropDownHeight;
+            }
+            else if (attachToControl is cuiButtonDropdown cbd)
+            {
+                MaxDropDownHeight = cbd.MaxDropDownHeight;
             }
 
             CalculateNewLocation(attachToControl);
@@ -333,8 +341,59 @@ namespace HartUI.Controls.Forms.Internal
                     break;
             }
 
-            Size = new Size(TargetControl.Width + 1 + doubleFormPadding, newHeight + 1 + doubleFormPadding);
+            int newWidth = TargetControl.Width;
+
+            // cuiComboBox dropdown should match the control width
+            // a cuiButtonDropdown's dropdown doesn't need to
+            if (TargetControl is cuiButtonDropdown)
+            {
+                newWidth = Math.Max(newWidth, GetContentWidth());
+            }
+
+            Size = new Size(newWidth + 1 + doubleFormPadding, newHeight + 1 + doubleFormPadding);
             formRounder.roundedFormObj.Region = null;
+        }
+
+        int GetContentWidth()
+        {
+            if (Items.Count == 0)
+            {
+                return 0;
+            }
+
+            int maxTextWidth = 0;
+            foreach (string item in Items)
+            {
+                int textWidth = TextRenderer.MeasureText(item, Font).Width;
+                if (textWidth > maxTextWidth)
+                {
+                    maxTextWidth = textWidth;
+                }
+            }
+
+            int imageAllowance = HasAnyItemImages() ? Font.Height + itemImageSpacing : 0;
+
+            // left inset (8, matches OnPaint) + image + text + right inset (8) + room
+            // for the scrollbar in case the list ends up overflowing vertically
+            return 8 + imageAllowance + maxTextWidth + 8 + scrollbarWidth;
+        }
+
+        bool HasAnyItemImages()
+        {
+            if (ItemImages == null)
+            {
+                return false;
+            }
+
+            foreach (Image image in ItemImages)
+            {
+                if (image != null)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         internal int _selectedIndex = -1;
@@ -449,7 +508,28 @@ namespace HartUI.Controls.Forms.Internal
                     }
                 }
 
-                Point textPosition = new Point(itemRect.X + 8, currentItemY + (itemRect.Height - Font.Height) / 2);
+                Image itemImage = (ItemImages != null && i < ItemImages.Count) ? ItemImages[i] : null;
+                int textX = itemRect.X + 8;
+
+                if (itemImage != null)
+                {
+                    int imageSize = Font.Height;
+                    Rectangle imageRect = new Rectangle(
+                        itemRect.X + 8,
+                        currentItemY + (itemRect.Height - imageSize) / 2,
+                        imageSize,
+                        imageSize);
+
+                    g.DrawImage(
+                        itemImage,
+                        imageRect,
+                        0, 0, itemImage.Width, itemImage.Height,
+                        GraphicsUnit.Pixel);
+
+                    textX = imageRect.Right + itemImageSpacing;
+                }
+
+                Point textPosition = new Point(textX, currentItemY + (itemRect.Height - Font.Height) / 2);
                 TextRenderer.DrawText(g, Items[i], Font, textPosition, ForeColor);
 
                 currentItemY += buttonOffsetSize;
