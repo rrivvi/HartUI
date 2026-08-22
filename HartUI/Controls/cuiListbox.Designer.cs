@@ -11,6 +11,8 @@
                 components.Dispose();
                 hookedParent.BackColorChanged -= HandleParentBackColorChanged;
                 hookedParent = null;
+                autoScrollTimer?.Stop();
+                autoScrollTimer?.Dispose();
             }
             base.Dispose(disposing);
         }
