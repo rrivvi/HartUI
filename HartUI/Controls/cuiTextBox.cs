@@ -438,6 +438,24 @@ namespace HartUI.Controls
             }
         }
 
+        private int privateImageTextSpacing = 8;
+
+        [Category("HartUI")]
+        [Description("Space between the image and contentTextField/placeholderTextField (if Image isn't null)")]
+        public int ImageTextSpacing
+        {
+            get
+            {
+                return privateImageTextSpacing;
+            }
+            set
+            {
+                if (privateImageTextSpacing == value) return;
+                privateImageTextSpacing = value;
+                Invalidate();
+            }
+        }
+
         protected override void OnPaint(PaintEventArgs e)
         {
             placeholderTextField.Visible = privateIsPlaceholder;
@@ -463,6 +481,13 @@ namespace HartUI.Controls
                     newTextboxY = -newTextboxY;
                 }
                 newPadding = new Padding(Font.Height, newTextboxY, Font.Height, 0);
+            }
+
+            if (privateImage != null)
+            {
+                // reserve space for the image
+                int imageAreaWidth = contentTextField.Height + (ImageExpand.X * 2) + ImageTextSpacing;
+                newPadding.Left += imageAreaWidth;
             }
 
             newPadding.Left += TextOffset.Width;
@@ -549,7 +574,8 @@ namespace HartUI.Controls
             if (privateImage != null)
             {
                 Color renderedTint = internalIsFocused ? FocusImageTint : NormalImageTint;
-                Rectangle imageRectangle = new Rectangle(contentTextField.Height, contentTextField.Location.Y, contentTextField.Height, contentTextField.Height);
+                int imageX = Font.Height + TextOffset.Width;
+                Rectangle imageRectangle = new Rectangle(imageX, contentTextField.Location.Y, contentTextField.Height, contentTextField.Height);
                 imageRectangle.Inflate(ImageExpand.X, ImageExpand.Y);
                 imageRectangle.Offset(privateImageOffset);
 

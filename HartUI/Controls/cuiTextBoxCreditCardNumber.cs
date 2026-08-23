@@ -17,7 +17,6 @@ namespace HartUI.Controls
         {
             InitializeComponent();
             PlaceholderText = "Credit card number here..";
-            TextOffset = new Size(24, 0);
             Image = Resources.credit_card;
             ContentChanged += CuiTextBoxCreditCardNumber_ContentChanged;
         }
@@ -47,9 +46,6 @@ namespace HartUI.Controls
         [EditorBrowsable(EditorBrowsableState.Never)]
         public new Point ImageOffset { get { return base.ImageOffset; } set { base.ImageOffset = value; } }
 
-        [Browsable(false)]
-        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        [EditorBrowsable(EditorBrowsableState.Never)]
         public new Size TextOffset { get { return base.TextOffset; } set { base.TextOffset = value; } }
 
         [Browsable(false)]
