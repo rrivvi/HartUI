@@ -3,7 +3,7 @@ using System.Windows.Forms;
 
 namespace HartUI.Misc.Internal
 {
-    public static class InputManager
+    internal static class InputManager
     {
         private static readonly object lockObj = new object();
         private static bool isFilterInstalled = false;

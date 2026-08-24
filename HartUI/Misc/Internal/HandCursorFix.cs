@@ -4,31 +4,34 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
-// https://stackoverflow.com/a/56768588
-public static class HandCursorFix
+namespace HartUI.Misc.Internal
 {
-    static HandCursorFix()
+    // https://stackoverflow.com/a/56768588
+    internal static class HandCursorFix
     {
-        EnableModernCursor();
-    }
-
-    public static void EnableModernCursor()
-    {
-        try
+        static HandCursorFix()
         {
-            if (!WindowsHelper.IsInDesignMode())
+            EnableModernCursor();
+        }
+
+        public static void EnableModernCursor()
+        {
+            try
             {
-                Cursor SystemHandCursor = new Cursor(LoadCursor(IntPtr.Zero, 32649 /*IDC_HAND*/));
-                FieldInfo handFieldInfo = typeof(Cursors).GetField("hand", BindingFlags.Static | BindingFlags.NonPublic);
-                if (handFieldInfo != null)
+                if (!WindowsHelper.IsInDesignMode())
                 {
-                    handFieldInfo.SetValue(null, SystemHandCursor);
+                    Cursor SystemHandCursor = new Cursor(LoadCursor(IntPtr.Zero, 32649 /*IDC_HAND*/));
+                    FieldInfo handFieldInfo = typeof(Cursors).GetField("hand", BindingFlags.Static | BindingFlags.NonPublic);
+                    if (handFieldInfo != null)
+                    {
+                        handFieldInfo.SetValue(null, SystemHandCursor);
+                    }
                 }
             }
+            catch { }
         }
-        catch { }
-    }
 
-    [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-    private static extern IntPtr LoadCursor(IntPtr hInstance, int lpCursorName);
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        private static extern IntPtr LoadCursor(IntPtr hInstance, int lpCursorName);
+    }
 }

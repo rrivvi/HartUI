@@ -92,7 +92,7 @@ namespace HartUI.Components.Forms
             int dimmerRounding = 0;
             if (!parentMaximized)
             {
-                cuiFormRounder rounderFound = FormsRegisteredByRounder.GetRounderByForm(parent);
+                cuiFormRounder rounderFound = Misc.Internal.FormsRegisteredByRounder.GetRounderByForm(parent);
                 rounderExists = rounderFound != null;
 
                 // Environment.OSVersion.Version is unreliable
