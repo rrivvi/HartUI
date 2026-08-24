@@ -1,4 +1,5 @@
 ﻿using HartUI.Components;
+using System.Drawing;
 
 namespace HartUI.Controls.Forms
 {
@@ -245,7 +246,7 @@ namespace HartUI.Controls.Forms
             // DatePicker
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
             this.BackColor = System.Drawing.Color.Black;
             this.ClientSize = new System.Drawing.Size(400, 313);
             this.Controls.Add(this.cuiButton5);

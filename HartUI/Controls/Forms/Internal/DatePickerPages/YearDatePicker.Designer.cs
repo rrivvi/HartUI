@@ -1,4 +1,6 @@
-﻿namespace HartUI.Controls.Forms.Internal.DatePickerPages
+﻿using System.Drawing;
+
+namespace HartUI.Controls.Forms.Internal.DatePickerPages
 {
     partial class YearDatePicker
     {
@@ -518,7 +520,7 @@
             // YearDatePicker
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
             this.Controls.Add(this.cuiButtonGroup1);
             this.Controls.Add(this.cuiButtonGroup2);
             this.Controls.Add(this.cuiButtonGroup3);
